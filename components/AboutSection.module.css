@@ -11,29 +11,82 @@
   }
 }
 
-.imagePlaceholder {
-  width: 100%;
-  height: 400px;
-  background: linear-gradient(135deg, var(--border-color), #f1f5f9);
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-family: var(--font-heading);
-  box-shadow: var(--shadow-lg);
+/* Stats card replaces image placeholder */
+.statsCard {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #1a5e2d 100%);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-xl), 0 0 40px rgba(43, 122, 62, 0.18);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
 }
 
+.statItem {
+  padding: 1.5rem;
+  text-align: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.statItem:nth-child(2n) {
+  border-right: none;
+}
+
+.statItem:nth-child(3),
+.statItem:nth-child(4) {
+  border-bottom: none;
+}
+
+.statValue {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.statDesc {
+  display: block;
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.01em;
+}
+
+.statsCardBadge {
+  grid-column: 1 / -1;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+}
+
+.statsCardBadgeText {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.statsCardBadgeText strong {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 700;
+}
+
+/* Text content */
 .title {
-  font-size: 2.5rem;
-  margin-bottom: 1.5rem;
+  font-size: 2.25rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 .description {
-  font-size: 1.125rem;
+  font-size: 1.05rem;
   color: var(--text-muted);
   margin-bottom: 2.5rem;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .infoList {
@@ -44,14 +97,16 @@
 
 .infoItem {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
+  align-items: flex-start;
 }
 
 .iconWrapper {
   width: 48px;
   height: 48px;
-  background-color: rgba(0, 191, 165, 0.1);
-  color: var(--secondary-color);
+  background-color: var(--primary-pale);
+  color: var(--primary-color);
+  border: 1px solid rgba(43, 122, 62, 0.14);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -60,11 +115,14 @@
 }
 
 .infoTitle {
-  font-size: 1.125rem;
+  font-size: 1rem;
+  font-weight: 700;
   margin-bottom: 0.25rem;
+  color: var(--foreground);
 }
 
 .infoText {
+  font-size: 0.9rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.55;
 }

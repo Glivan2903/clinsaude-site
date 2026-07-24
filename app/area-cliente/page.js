@@ -15,18 +15,19 @@ import {
   getAgendasLivres, 
   reagendarAgendamento 
 } from '../../services/api';
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  Activity, 
-  LogOut, 
-  Loader2, 
-  Phone, 
-  AlertCircle, 
-  Check, 
-  X, 
-  RefreshCw, 
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  Calendar,
+  Clock,
+  User,
+  Activity,
+  LogOut,
+  Loader2,
+  Phone,
+  AlertCircle,
+  Check,
+  X,
+  RefreshCw,
   Trash2,
   Lock
 } from 'lucide-react';
@@ -357,10 +358,23 @@ export default function AreaCliente() {
       <Header />
       
       <section className="pageSection container">
-        <div className="glass contentCard" style={{ maxWidth: '900px' }}>
-          
+        <motion.div
+          className="glass contentCard"
+          style={{ maxWidth: '900px' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <AnimatePresence mode="wait">
           {!isAuthenticated ? (
-            <div className={styles.loginContainer}>
+            <motion.div
+              key="login"
+              className={styles.loginContainer}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            >
               <div className={styles.loginIcon}><Lock size={32} /></div>
               <h2 className={styles.title}>Área do Cliente</h2>
               <p className={styles.subtitle}>Digite o telefone cadastrado no agendamento para consultar o seu histórico.</p>
@@ -398,9 +412,15 @@ export default function AreaCliente() {
                   ) : 'Acessar Área do Cliente'}
                 </button>
               </form>
-            </div>
+            </motion.div>
           ) : (
-            <div>
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            >
               <div className={styles.dashboardHeader}>
                 <div>
                   <h2 className={styles.welcomeText}>Olá, <span className="gradient-text">{patient?.CLI_NOME}</span></h2>
@@ -480,16 +500,30 @@ export default function AreaCliente() {
                   })}
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
 
-        </div>
+        </motion.div>
       </section>
 
       {/* Reschedule Modal */}
+      <AnimatePresence>
       {showRescheduleModal && (
-        <div className={styles.modalOverlay}>
-          <div className={`${styles.modalContainer} glass`}>
+        <motion.div
+          className={styles.modalOverlay}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.div
+            className={`${styles.modalContainer} glass`}
+            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+          >
             <div className={styles.modalHeader}>
               <h3>Reagendar Consulta</h3>
               <button onClick={() => setShowRescheduleModal(false)} className={styles.closeModalBtn}>
@@ -581,14 +615,29 @@ export default function AreaCliente() {
                 </>
               )}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Custom Dialog Modal */}
+      <AnimatePresence>
       {dialog.show && (
-        <div className={styles.modalOverlay} style={{ zIndex: 110 }}>
-          <div className={`${styles.dialogContainer} glass`}>
+        <motion.div
+          className={styles.modalOverlay}
+          style={{ zIndex: 110 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.div
+            className={`${styles.dialogContainer} glass`}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          >
             <div className={styles.dialogHeader}>
               <h3>{dialog.title}</h3>
               <button onClick={() => setDialog({ ...dialog, show: false })} className={styles.closeModalBtn}>
@@ -624,9 +673,10 @@ export default function AreaCliente() {
                 </button>
               )}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       <Footer />
     </main>

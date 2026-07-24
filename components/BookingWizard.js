@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import styles from './BookingWizard.module.css';
-import { 
-  getCentros, 
-  getProfissionais, 
-  getOpcoes, 
-  getDias, 
-  getHorarios, 
-  getAgendasLivres, 
-  agendar 
+import {
+  getCentros,
+  getProfissionais,
+  getOpcoes,
+  getDias,
+  getHorarios,
+  getAgendasLivres,
+  agendar
 } from '../services/api';
 import { Check, ChevronRight, ChevronDown, AlertCircle, Loader2, Search, ArrowLeft, Calendar, User, Activity, Phone } from 'lucide-react';
 
@@ -214,8 +215,20 @@ export default function BookingWizard() {
   if (success) {
     return (
       <div className={styles.wizardContainer}>
-        <div className={styles.successState}>
-          <div className={styles.successIcon}><Check size={40} /></div>
+        <motion.div
+          className={styles.successState}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <motion.div
+            className={styles.successIcon}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22, delay: 0.2 }}
+          >
+            <Check size={40} />
+          </motion.div>
           <h3>Agendamento Confirmado!</h3>
           <p className={styles.successIntro}>Sua consulta/exame foi marcada com sucesso. Detalhes da reserva:</p>
           
@@ -270,11 +283,11 @@ export default function BookingWizard() {
           </div>
 
           <p className={styles.successNote}>Nossa equipe entrará em contato para confirmação final.</p>
-          
-          <button className="btn-primary" onClick={() => window.location.reload()} style={{marginTop: '2rem'}}>
+
+          <button className="btn-primary" onClick={() => window.location.reload()} style={{ marginTop: '2rem' }}>
             Novo Agendamento
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -297,7 +310,15 @@ export default function BookingWizard() {
         </div>
       )}
 
-      <div className={styles.stepContent}>
+      <div className={styles.stepContent} style={{ overflow: 'hidden' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+          >
         {step > 1 && (
           <button className={styles.backBtn} onClick={() => setStep(step - 1)}>
             <ArrowLeft size={16} /> Voltar
@@ -305,7 +326,7 @@ export default function BookingWizard() {
         )}
 
         {step === 1 && (
-          <div className={styles.fadeEnter}>
+          <div>
             <h3 className={styles.stepTitle}>Qual o tipo de atendimento?</h3>
             
             <div className={styles.dropdownContainer}>
@@ -362,7 +383,7 @@ export default function BookingWizard() {
         )}
 
         {step === 2 && (
-          <div className={styles.fadeEnter}>
+          <div>
             <h3 className={styles.stepTitle}>Escolha o Profissional</h3>
 
             <div className={styles.searchWrapper}>
@@ -401,7 +422,7 @@ export default function BookingWizard() {
         )}
 
         {step === 3 && (
-          <div className={styles.fadeEnter}>
+          <div>
             <h3 className={styles.stepTitle}>Selecione Convênio e Exame</h3>
             
             <div className={styles.optionSection}>
@@ -452,7 +473,7 @@ export default function BookingWizard() {
         )}
 
         {step === 4 && (
-          <div className={styles.fadeEnter}>
+          <div>
             <h3 className={styles.stepTitle}>Datas Disponíveis</h3>
             
             <div className={styles.dateGrid}>
@@ -474,7 +495,7 @@ export default function BookingWizard() {
         )}
 
         {step === 5 && (
-          <div className={styles.fadeEnter}>
+          <div>
             <h3 className={styles.stepTitle}>Confirme Seus Dados</h3>
             
             <div className={styles.summaryContainer}>
@@ -531,6 +552,8 @@ export default function BookingWizard() {
             </form>
           </div>
         )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

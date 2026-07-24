@@ -44,7 +44,7 @@
 .stepActive {
   background-color: var(--primary-color);
   color: white;
-  box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.2);
+  box-shadow: 0 0 0 4px rgba(43, 122, 62, 0.20);
 }
 
 .stepCompleted {
@@ -103,14 +103,7 @@
   font-weight: 700;
 }
 
-.fadeEnter {
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* fadeEnter removed — motion/react AnimatePresence handles step transitions */
 
 /* Search Bar Wrapper */
 .searchWrapper {
@@ -142,7 +135,7 @@
 .searchInput:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
+  box-shadow: 0 0 0 3px rgba(43, 122, 62, 0.12);
   background: var(--surface);
 }
 
@@ -190,7 +183,7 @@
 .cardCodeBadge {
   font-size: 0.75rem;
   color: var(--primary-color);
-  background-color: rgba(13, 71, 161, 0.08);
+  background-color: var(--primary-pale);
   font-weight: 700;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
@@ -250,7 +243,6 @@
 
 .selectCardProf:hover {
   border-color: var(--primary-light);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
@@ -314,7 +306,7 @@
 
 .chipCard:hover {
   border-color: var(--primary-light);
-  background: rgba(13, 71, 161, 0.02);
+  background: var(--primary-pale);
 }
 
 .chipCardSelected {
@@ -358,7 +350,6 @@
 
 .dateSelectorCard:hover {
   border-color: var(--secondary-color);
-  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
 
@@ -478,7 +469,7 @@
 .selectInput:focus, .textInput:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
+  box-shadow: 0 0 0 3px rgba(43, 122, 62, 0.12);
   background: var(--surface);
 }
 
