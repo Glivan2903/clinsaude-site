@@ -1,0 +1,76 @@
+.brandFooter {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 1rem 0;
+}
+
+.inativoWrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.inativoTitulo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.inativoTexto {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.profileHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.15rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 0.3rem;
+}
+
+.nome {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.especialidade {
+  font-size: 0.82rem;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.crm {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.sectionTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--foreground);
+  text-align: center;
+  margin-bottom: 0.5rem;
+}

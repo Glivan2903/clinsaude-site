@@ -1,0 +1,77 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nome {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.especialidade {
+  font-size: 0.78rem;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.slug {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toggle {
+  flex-shrink: 0;
+  width: 44px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--border-color);
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.toggle:disabled {
+  opacity: 0.6;
+}
+
+.toggleAtivo {
+  background: var(--primary-color);
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease;
+}
+
+.toggleAtivo .toggleKnob {
+  transform: translateX(20px);
+}

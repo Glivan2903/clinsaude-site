@@ -14,9 +14,11 @@ import {
 } from '../services/api';
 import { Check, ChevronRight, ChevronDown, AlertCircle, Loader2, Search, ArrowLeft, Calendar, User, Activity, Phone } from 'lucide-react';
 
-export default function BookingWizard() {
-  const [step, setStep] = useState(1);
+export default function BookingWizard({ initialCentro = null, initialProfissional = null }) {
+  const [step, setStep] = useState(initialProfissional ? 3 : 1);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [convenioDropdownOpen, setConvenioDropdownOpen] = useState(false);
+  const [exameDropdownOpen, setExameDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -28,8 +30,8 @@ export default function BookingWizard() {
   const [agendas, setAgendas] = useState([]);
 
   // Selection states
-  const [selectedCentro, setSelectedCentro] = useState(null);
-  const [selectedProfissional, setSelectedProfissional] = useState(null);
+  const [selectedCentro, setSelectedCentro] = useState(initialCentro);
+  const [selectedProfissional, setSelectedProfissional] = useState(initialProfissional);
   const [selectedConvenio, setSelectedConvenio] = useState(null);
   const [selectedExame, setSelectedExame] = useState(null);
   const [selectedAgenda, setSelectedAgenda] = useState(null);
@@ -54,6 +56,36 @@ export default function BookingWizard() {
       }
     }
     loadCentros();
+  }, []);
+
+  // If arriving pre-selected from a professional's own page, preload their
+  // profissionais list (for the "Voltar" step) and opcoes, skipping straight to step 3.
+  useEffect(() => {
+    if (!initialCentro || !initialProfissional) return;
+    async function loadInitialData() {
+      setLoading(true);
+      try {
+        const [profs, dataOpcoes] = await Promise.all([
+          getProfissionais(initialCentro.CEN_CODIGO),
+          getOpcoes(
+            initialCentro.CEN_CODIGO,
+            initialProfissional.PROF_CODIGO,
+            initialProfissional.CONS_CODIGO,
+            initialProfissional.PROF_ESTADO_CONS
+          ),
+        ]);
+        setProfissionais(profs || []);
+        setOpcoes({
+          convenios: dataOpcoes.filter((o) => o.TIPO === 'CONVENIO'),
+          exames: dataOpcoes.filter((o) => o.TIPO === 'EXAME'),
+        });
+      } catch (err) {
+        setError('Falha ao carregar dados do profissional.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadInitialData();
   }, []);
 
   // Clear search on step change
@@ -188,18 +220,23 @@ export default function BookingWizard() {
   );
 
   // Render helpers
-  const stepLabels = ['Especialidade', 'Profissional', 'Dados', 'Data', 'Confirmação'];
+  // Quando a página já vem travada num profissional específico, os passos de
+  // escolha de especialidade/profissional não se aplicam e ficam de fora do indicador.
+  const stepLabels = initialProfissional
+    ? ['Convênio/Exame', 'Data', 'Confirmação']
+    : ['Especialidade', 'Profissional', 'Dados', 'Data', 'Confirmação'];
+  const stepOffset = initialProfissional ? 2 : 0;
   const renderStepIndicator = () => (
     <div className={styles.stepperContainer}>
       <div className={styles.stepper}>
         {stepLabels.map((label, idx) => {
-          const i = idx + 1;
+          const i = idx + 1 + stepOffset;
           const isCompleted = step > i;
           const isActive = step === i;
           return (
             <div key={i} className={`${styles.stepWrapper} ${isActive ? styles.stepWrapperActive : ''}`}>
               <div className={`${styles.stepDot} ${isActive ? styles.stepActive : ''} ${isCompleted ? styles.stepCompleted : ''}`}>
-                {isCompleted ? <Check size={14} /> : i}
+                {isCompleted ? <Check size={14} /> : idx + 1}
               </div>
               <span className={`${styles.stepLabel} ${isActive || isCompleted ? styles.stepLabelActive : ''}`}>{label}</span>
             </div>
@@ -207,7 +244,7 @@ export default function BookingWizard() {
         })}
       </div>
       <div className={styles.progressBarBg}>
-        <div className={styles.progressBar} style={{ width: `${((step - 1) / (stepLabels.length - 1)) * 100}%` }} />
+        <div className={styles.progressBar} style={{ width: `${((step - 1 - stepOffset) / (stepLabels.length - 1)) * 100}%` }} />
       </div>
     </div>
   );
@@ -310,7 +347,7 @@ export default function BookingWizard() {
         </div>
       )}
 
-      <div className={styles.stepContent} style={{ overflow: 'hidden' }}>
+      <div className={styles.stepContent}>
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -319,7 +356,7 @@ export default function BookingWizard() {
             exit={{ opacity: 0, x: -16 }}
             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
           >
-        {step > 1 && (
+        {step > 1 && !(initialProfissional && step === 3) && (
           <button className={styles.backBtn} onClick={() => setStep(step - 1)}>
             <ArrowLeft size={16} /> Voltar
           </button>
@@ -424,45 +461,91 @@ export default function BookingWizard() {
         {step === 3 && (
           <div>
             <h3 className={styles.stepTitle}>Selecione Convênio e Exame</h3>
-            
+
             <div className={styles.optionSection}>
               <h4 className={styles.optionSectionTitle}>Selecione o Convênio</h4>
-              <div className={styles.chipsGrid}>
-                {opcoes.convenios.map(c => {
-                  const isSelected = selectedConvenio?.CODIGO === c.CODIGO;
-                  return (
-                    <button
-                      key={c.CODIGO}
-                      className={`${styles.chipCard} ${isSelected ? styles.chipCardSelected : ''}`}
-                      onClick={() => setSelectedConvenio(c)}
-                    >
-                      {c.DESCRICAO}
-                    </button>
-                  );
-                })}
+              <div className={styles.dropdownContainer} style={{ marginTop: 0 }}>
+                <div
+                  className={styles.dropdownTrigger}
+                  onClick={() => setConvenioDropdownOpen(!convenioDropdownOpen)}
+                >
+                  <span className={styles.dropdownTriggerLabel}>{selectedConvenio ? selectedConvenio.DESCRICAO.trim() : 'Escolha um convênio...'}</span>
+                  <ChevronDown size={20} className={styles.dropdownArrow} style={{ transform: convenioDropdownOpen ? 'rotate(180deg)' : 'none' }} />
+                </div>
+
+                {convenioDropdownOpen && (
+                  <>
+                    <div
+                      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9 }}
+                      onClick={() => setConvenioDropdownOpen(false)}
+                    />
+                    <div className={`${styles.dropdownMenu} glass`} style={{ zIndex: 10 }}>
+                      <div className={styles.dropdownOptionsList}>
+                        {opcoes.convenios.map((c) => (
+                          <div
+                            key={c.CODIGO}
+                            className={styles.dropdownOption}
+                            onClick={() => {
+                              setSelectedConvenio(c);
+                              setConvenioDropdownOpen(false);
+                            }}
+                          >
+                            <span className={styles.optionDescWrap}>{c.DESCRICAO.trim()}</span>
+                          </div>
+                        ))}
+                        {opcoes.convenios.length === 0 && (
+                          <p className={styles.noResults} style={{ padding: '1rem' }}>Nenhum convênio disponível.</p>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
             <div className={styles.optionSection} style={{ marginTop: '2rem' }}>
               <h4 className={styles.optionSectionTitle}>Selecione o Procedimento</h4>
-              <div className={styles.chipsGrid}>
-                {opcoes.exames.map(ex => {
-                  const isSelected = selectedExame?.CODIGO === ex.CODIGO;
-                  return (
-                    <button
-                      key={ex.CODIGO}
-                      className={`${styles.chipCard} ${isSelected ? styles.chipCardSelected : ''}`}
-                      onClick={() => setSelectedExame(ex)}
-                    >
-                      {ex.DESCRICAO}
-                    </button>
-                  );
-                })}
+              <div className={styles.dropdownContainer} style={{ marginTop: 0 }}>
+                <div
+                  className={styles.dropdownTrigger}
+                  onClick={() => setExameDropdownOpen(!exameDropdownOpen)}
+                >
+                  <span className={styles.dropdownTriggerLabel}>{selectedExame ? selectedExame.DESCRICAO.trim() : 'Escolha um procedimento...'}</span>
+                  <ChevronDown size={20} className={styles.dropdownArrow} style={{ transform: exameDropdownOpen ? 'rotate(180deg)' : 'none' }} />
+                </div>
+
+                {exameDropdownOpen && (
+                  <>
+                    <div
+                      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9 }}
+                      onClick={() => setExameDropdownOpen(false)}
+                    />
+                    <div className={`${styles.dropdownMenu} glass`} style={{ zIndex: 10 }}>
+                      <div className={styles.dropdownOptionsList}>
+                        {opcoes.exames.map((ex) => (
+                          <div
+                            key={ex.CODIGO}
+                            className={styles.dropdownOption}
+                            onClick={() => {
+                              setSelectedExame(ex);
+                              setExameDropdownOpen(false);
+                            }}
+                          >
+                            <span className={styles.optionDescWrap}>{ex.DESCRICAO.trim()}</span>
+                          </div>
+                        ))}
+                        {opcoes.exames.length === 0 && (
+                          <p className={styles.noResults} style={{ padding: '1rem' }}>Nenhum procedimento disponível.</p>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
-            <button 
-              className={`btn-primary ${styles.fullWidth}`} 
+            <button
+              className={`btn-primary ${styles.fullWidth}`}
               onClick={handleOpcoesSubmit}
               disabled={!selectedConvenio || !selectedExame}
               style={{ opacity: (!selectedConvenio || !selectedExame) ? 0.6 : 1, marginTop: '2.5rem' }}

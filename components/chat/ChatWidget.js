@@ -11,7 +11,7 @@ export default function ChatWidget() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  const hidden = pathname === '/chat';
+  const hidden = pathname === '/chat' || pathname.startsWith('/medicos/');
 
   return (
     <>
