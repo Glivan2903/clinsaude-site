@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './BookingWizard.module.css';
+import EcgLine from './EcgLine';
+import { gsap, useGSAP } from '../lib/gsap';
 import {
   getCentros,
   getProfissionais,
@@ -12,10 +13,13 @@ import {
   getAgendasLivres,
   agendar
 } from '../services/api';
-import { Check, ChevronRight, ChevronDown, AlertCircle, Loader2, Search, ArrowLeft, Calendar, User, Activity, Phone } from 'lucide-react';
+import { Check, ChevronRight, ChevronDown, AlertCircle, Search, ArrowLeft, Calendar, User, Activity, Phone } from 'lucide-react';
 
 export default function BookingWizard({ initialCentro = null, initialProfissional = null }) {
   const [step, setStep] = useState(initialProfissional ? 3 : 1);
+  const stepContentRef = useRef(null);
+  const progressBarRef = useRef(null);
+  const successRef = useRef(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [convenioDropdownOpen, setConvenioDropdownOpen] = useState(false);
   const [exameDropdownOpen, setExameDropdownOpen] = useState(false);
@@ -41,6 +45,53 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
 
   // Form states
   const [formData, setFormData] = useState({ nome: '', telefone: '' });
+
+  // Transição entre passos ("swap", §5.4).
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        if (stepContentRef.current) {
+          gsap.fromTo(
+            stepContentRef.current,
+            { opacity: 0, y: 8 },
+            { opacity: 1, y: 0, duration: 0.3 }
+          );
+        }
+      });
+    },
+    { dependencies: [step] }
+  );
+
+  // Barra de progresso: width animado via transição CSS declarativa
+  // (.progressBar), não GSAP — mantém a regra de nunca animar width/height
+  // com o motor de animação.
+  const stepsTotalForProgress = initialProfissional ? 3 : 5;
+  const progressOffset = initialProfissional ? 2 : 0;
+  const progressPct = ((step - 1 - progressOffset) / (stepsTotalForProgress - 1)) * 100;
+
+  // Entrada do estado de sucesso.
+  useGSAP(
+    () => {
+      if (!success || !successRef.current) return;
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.fromTo(
+          successRef.current,
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.4 }
+        );
+        gsap.from(`.${styles.successIcon}`, {
+          scale: 0.6,
+          opacity: 0,
+          duration: 0.35,
+          delay: 0.15,
+          ease: 'power3.out',
+        });
+      });
+    },
+    { scope: successRef, dependencies: [success] }
+  );
 
   // 1. Fetch Centros on mount
   useEffect(() => {
@@ -244,7 +295,7 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
         })}
       </div>
       <div className={styles.progressBarBg}>
-        <div className={styles.progressBar} style={{ width: `${((step - 1 - stepOffset) / (stepLabels.length - 1)) * 100}%` }} />
+        <div ref={progressBarRef} className={styles.progressBar} style={{ width: `${progressPct}%` }} />
       </div>
     </div>
   );
@@ -252,20 +303,10 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
   if (success) {
     return (
       <div className={styles.wizardContainer}>
-        <motion.div
-          className={styles.successState}
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          <motion.div
-            className={styles.successIcon}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 22, delay: 0.2 }}
-          >
+        <div ref={successRef} className={styles.successState}>
+          <div className={styles.successIcon}>
             <Check size={40} />
-          </motion.div>
+          </div>
           <h3>Agendamento Confirmado!</h3>
           <p className={styles.successIntro}>Sua consulta/exame foi marcada com sucesso. Detalhes da reserva:</p>
           
@@ -322,9 +363,9 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
           <p className={styles.successNote}>Nossa equipe entrará em contato para confirmação final.</p>
 
           <button className="btn-primary" onClick={() => window.location.reload()} style={{ marginTop: '2rem' }}>
-            Novo Agendamento
+            Novo agendamento
           </button>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -342,20 +383,13 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
 
       {loading && (
         <div className={styles.loaderOverlay}>
-          <Loader2 className={styles.spinner} size={40} />
+          <EcgLine variant="spinner" />
           <p>Carregando...</p>
         </div>
       )}
 
       <div className={styles.stepContent}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -16 }}
-            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-          >
+        <div key={step} ref={stepContentRef}>
         {step > 1 && !(initialProfissional && step === 3) && (
           <button className={styles.backBtn} onClick={() => setStep(step - 1)}>
             <ArrowLeft size={16} /> Voltar
@@ -381,7 +415,7 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
                     style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9 }} 
                     onClick={() => setDropdownOpen(false)} 
                   />
-                  <div className={`${styles.dropdownMenu} glass`} style={{ zIndex: 10 }}>
+                  <div className={styles.dropdownMenu} style={{ zIndex: 10 }}>
                     <div className={styles.dropdownSearchWrapper}>
                       <Search size={16} className={styles.dropdownSearchIcon} />
                       <input
@@ -479,7 +513,7 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
                       style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9 }}
                       onClick={() => setConvenioDropdownOpen(false)}
                     />
-                    <div className={`${styles.dropdownMenu} glass`} style={{ zIndex: 10 }}>
+                    <div className={styles.dropdownMenu} style={{ zIndex: 10 }}>
                       <div className={styles.dropdownOptionsList}>
                         {opcoes.convenios.map((c) => (
                           <div
@@ -520,7 +554,7 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
                       style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9 }}
                       onClick={() => setExameDropdownOpen(false)}
                     />
-                    <div className={`${styles.dropdownMenu} glass`} style={{ zIndex: 10 }}>
+                    <div className={styles.dropdownMenu} style={{ zIndex: 10 }}>
                       <div className={styles.dropdownOptionsList}>
                         {opcoes.exames.map((ex) => (
                           <div
@@ -635,8 +669,7 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
             </form>
           </div>
         )}
-          </motion.div>
-        </AnimatePresence>
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 import AdminProfissionaisList from '@/components/AdminProfissionaisList';
 import AdminLogoutButton from '@/components/AdminLogoutButton';
-import { getTodosProfissionais } from '@/lib/profissionais';
+import { getProfissionaisUnificados } from '@/lib/profissionais';
 import { getStatusParaSlugs } from '@/lib/profissionaisStatus';
+import { getAliasParaSlugs } from '@/lib/profissionaisAlias';
 import styles from './page.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -12,8 +13,12 @@ export const metadata = {
 };
 
 export default async function AdminPage() {
-  const profissionais = await getTodosProfissionais();
-  const statusInicial = await getStatusParaSlugs(profissionais.map((p) => p.slug));
+  const profissionais = await getProfissionaisUnificados();
+  const slugs = profissionais.map((p) => p.slug);
+  const [statusInicial, aliasInicial] = await Promise.all([
+    getStatusParaSlugs(slugs),
+    getAliasParaSlugs(slugs),
+  ]);
 
   return (
     <div className={styles.wrapper}>
@@ -22,7 +27,11 @@ export default async function AdminPage() {
         <AdminLogoutButton />
       </div>
       <div className={styles.content}>
-        <AdminProfissionaisList profissionais={profissionais} statusInicial={statusInicial} />
+        <AdminProfissionaisList
+          profissionais={profissionais}
+          statusInicial={statusInicial}
+          aliasInicial={aliasInicial}
+        />
       </div>
     </div>
   );

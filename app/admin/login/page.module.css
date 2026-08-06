@@ -10,7 +10,10 @@
   width: 100%;
   max-width: 360px;
   padding: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .title {

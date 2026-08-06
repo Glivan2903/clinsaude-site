@@ -21,3 +21,13 @@
   max-width: 720px;
   margin: 0 auto;
 }
+
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 1.25rem 1rem;
+  }
+
+  .title {
+    font-size: 1.02rem;
+  }
+}

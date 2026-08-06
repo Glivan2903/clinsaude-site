@@ -103,8 +103,6 @@
   font-weight: 700;
 }
 
-/* fadeEnter removed — motion/react AnimatePresence handles step transitions */
-
 /* Search Bar Wrapper */
 .searchWrapper {
   position: relative;
@@ -250,8 +248,10 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-  color: white;
+  background: var(--success-bg);
+  border: 1px solid var(--line);
+  color: var(--green-700);
+  font-family: var(--font-heading);
   font-weight: 700;
   font-size: 1.15rem;
   display: flex;
@@ -467,14 +467,8 @@
   border-radius: var(--radius-lg);
 }
 
-.spinner {
-  color: var(--primary-color);
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  100% { transform: rotate(360deg); }
+.loaderOverlay svg {
+  margin-bottom: 0.75rem;
 }
 
 .successState {
@@ -708,5 +702,89 @@
   min-width: 0;
   overflow-wrap: break-word;
   margin-right: 0.5rem;
+}
+
+/* Mobile: os controles do wizard (stepper, dropdowns, cards de data, tela de
+   sucesso) usam os mesmos tamanhos do desktop hoje — no celular isso ocupa a
+   tela inteira com poucos elementos e dá sensação de "tudo gigante". Reduz
+   só aqui, sem tocar no layout ≥641px. */
+@media (max-width: 640px) {
+  .wizardContainer {
+    padding: 0.85rem;
+  }
+
+  .stepperContainer {
+    margin-bottom: 1.75rem;
+  }
+
+  .stepDot {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+    border-width: 2px;
+  }
+
+  .progressBarBg {
+    top: 14px;
+  }
+
+  .stepTitle {
+    font-size: 1.1rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .stepContent {
+    min-height: 180px;
+  }
+
+  .dropdownTrigger {
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .dropdownOption {
+    padding: 0.7rem 1rem;
+  }
+
+  .selectCardProf,
+  .selectCardCentro {
+    padding: 0.7rem 1rem;
+  }
+
+  .profAvatar {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .dateSelectorCard {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .dateDayNumber {
+    font-size: 1.4rem;
+  }
+
+  .summaryContainer {
+    padding: 1rem;
+  }
+
+  .successIcon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .successIcon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .successState h3 {
+    font-size: 1.35rem;
+  }
+
+  .successState {
+    padding: 1.5rem 0.5rem;
+  }
 }
 

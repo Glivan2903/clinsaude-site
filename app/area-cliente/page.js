@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import EcgLine from '../../components/EcgLine';
+import { gsap, useGSAP } from '../../lib/gsap';
 import styles from './area-cliente.module.css';
 import { 
   getPaciente, 
@@ -15,14 +17,12 @@ import {
   getAgendasLivres, 
   reagendarAgendamento 
 } from '../../services/api';
-import { motion, AnimatePresence } from 'motion/react';
 import {
   Calendar,
   Clock,
   User,
   Activity,
   LogOut,
-  Loader2,
   Phone,
   AlertCircle,
   Check,
@@ -65,6 +65,48 @@ export default function AreaCliente() {
     onConfirm: null,
     onCancel: null
   });
+
+  const cardRef = useRef(null);
+  const viewRef = useRef(null);
+  const rescheduleModalRef = useRef(null);
+  const dialogRef = useRef(null);
+
+  // Entrada do cartão e troca login ↔ painel ("swap", §5.4).
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        if (viewRef.current) {
+          gsap.fromTo(viewRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3 });
+        }
+      });
+    },
+    { dependencies: [isAuthenticated] }
+  );
+
+  // Entrada dos modais.
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        if (showRescheduleModal && rescheduleModalRef.current) {
+          gsap.fromTo(
+            rescheduleModalRef.current,
+            { opacity: 0, y: 12, scale: 0.97 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.28, ease: 'power3.out' }
+          );
+        }
+        if (dialog.show && dialogRef.current) {
+          gsap.fromTo(
+            dialogRef.current,
+            { opacity: 0, y: 10, scale: 0.97 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.25, ease: 'power3.out' }
+          );
+        }
+      });
+    },
+    { dependencies: [showRescheduleModal, dialog.show] }
+  );
 
   // Auto-fill phone on page load if saved in localStorage
   useEffect(() => {
@@ -358,23 +400,10 @@ export default function AreaCliente() {
       <Header />
       
       <section className="pageSection container">
-        <motion.div
-          className="glass contentCard"
-          style={{ maxWidth: '900px' }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          <AnimatePresence mode="wait">
+        <div ref={cardRef} className={styles.contentCard} style={{ maxWidth: '900px' }}>
+          <div ref={viewRef}>
           {!isAuthenticated ? (
-            <motion.div
-              key="login"
-              className={styles.loginContainer}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10, scale: 0.98 }}
-              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            >
+            <div className={styles.loginContainer}>
               <div className={styles.loginIcon}><Lock size={32} /></div>
               <h2 className={styles.title}>Área do Cliente</h2>
               <p className={styles.subtitle}>Digite o telefone cadastrado no agendamento para consultar o seu histórico.</p>
@@ -406,24 +435,18 @@ export default function AreaCliente() {
                 <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
                   {loading ? (
                     <>
-                      <Loader2 className={styles.spinner} size={20} style={{ marginRight: '0.5rem', marginBottom: 0, color: 'white' }} />
+                      <EcgLine variant="spinner" className={styles.spinner} />
                       Buscando cadastro...
                     </>
                   ) : 'Acessar Área do Cliente'}
                 </button>
               </form>
-            </motion.div>
+            </div>
           ) : (
-            <motion.div
-              key="dashboard"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            >
+            <div>
               <div className={styles.dashboardHeader}>
                 <div>
-                  <h2 className={styles.welcomeText}>Olá, <span className="gradient-text">{patient?.CLI_NOME}</span></h2>
+                  <h2 className={styles.welcomeText}>Olá, <span className={styles.welcomeName}>{patient?.CLI_NOME}</span></h2>
                   <p className={styles.welcomeSub}>Abaixo estão todas as suas consultas e exames registrados.</p>
                 </div>
                 <button onClick={handleLogout} className={styles.logoutBtn}>
@@ -500,30 +523,16 @@ export default function AreaCliente() {
                   })}
                 </div>
               )}
-            </motion.div>
+            </div>
           )}
-          </AnimatePresence>
-
-        </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* Reschedule Modal */}
-      <AnimatePresence>
       {showRescheduleModal && (
-        <motion.div
-          className={styles.modalOverlay}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <motion.div
-            className={`${styles.modalContainer} glass`}
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 8 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-          >
+        <div className={styles.modalOverlay}>
+          <div ref={rescheduleModalRef} className={styles.modalContainer}>
             <div className={styles.modalHeader}>
               <h3>Reagendar Consulta</h3>
               <button onClick={() => setShowRescheduleModal(false)} className={styles.closeModalBtn}>
@@ -534,7 +543,7 @@ export default function AreaCliente() {
             <div className={styles.modalBody}>
               {rescheduleLoading ? (
                 <div className={styles.modalLoader}>
-                  <Loader2 className={styles.spinner} size={32} />
+                  <EcgLine variant="spinner" />
                   <p>Buscando datas livres...</p>
                 </div>
               ) : (
@@ -615,29 +624,14 @@ export default function AreaCliente() {
                 </>
               )}
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-      </AnimatePresence>
 
       {/* Custom Dialog Modal */}
-      <AnimatePresence>
       {dialog.show && (
-        <motion.div
-          className={styles.modalOverlay}
-          style={{ zIndex: 110 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <motion.div
-            className={`${styles.dialogContainer} glass`}
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          >
+        <div className={styles.modalOverlay} style={{ zIndex: 110 }}>
+          <div ref={dialogRef} className={styles.dialogContainer}>
             <div className={styles.dialogHeader}>
               <h3>{dialog.title}</h3>
               <button onClick={() => setDialog({ ...dialog, show: false })} className={styles.closeModalBtn}>
@@ -673,10 +667,9 @@ export default function AreaCliente() {
                 </button>
               )}
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-      </AnimatePresence>
 
       <Footer />
     </main>

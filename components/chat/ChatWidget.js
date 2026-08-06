@@ -1,68 +1,79 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, X } from 'lucide-react';
 import ChatInterface from './ChatInterface';
 import styles from './ChatWidget.module.css';
+import { gsap, useGSAP } from '../../lib/gsap';
 
 export default function ChatWidget() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef(null);
+  const fabRef = useRef(null);
+  const panelRef = useRef(null);
 
   const hidden = pathname === '/chat' || pathname.startsWith('/medicos/');
 
-  return (
-    <>
-      <AnimatePresence>
-        {!hidden && !isOpen && (
-          <motion.button
-            key="fab"
-            className={styles.fab}
-            onClick={() => setIsOpen(true)}
-            aria-label="Abrir chat com a Sofia"
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.7 }}
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <MessageCircle size={26} />
-            <span className={styles.fabPulse} />
-          </motion.button>
-        )}
-      </AnimatePresence>
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        if (isOpen && panelRef.current) {
+          gsap.fromTo(
+            panelRef.current,
+            { opacity: 0, scale: 0.95, y: 16, transformOrigin: 'bottom right' },
+            { opacity: 1, scale: 1, y: 0, duration: 0.25, ease: 'power3.out' }
+          );
+        }
+        if (!isOpen && fabRef.current) {
+          gsap.fromTo(
+            fabRef.current,
+            { opacity: 0, scale: 0.7, transformOrigin: 'bottom right' },
+            { opacity: 1, scale: 1, duration: 0.22, ease: 'power3.out' }
+          );
+        }
+      });
+    },
+    { scope: rootRef, dependencies: [isOpen, hidden] }
+  );
 
-      <AnimatePresence>
-        {!hidden && isOpen && (
-          <motion.div
-            key="panel"
-            className={`${styles.panel} glass`}
-            initial={{ opacity: 0, scale: 0.95, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className={styles.panelHeader}>
-              <div className={styles.panelHeaderInfo}>
-                <div className={styles.avatar}>S</div>
-                <div>
-                  <span className={styles.panelTitle}>Sofia</span>
-                  <span className={styles.panelSubtitle}>
-                    <span className={styles.onlineDot} /> Clin+Saúde
-                  </span>
-                </div>
+  if (hidden) return null;
+
+  return (
+    <div ref={rootRef}>
+      {!isOpen && (
+        <button
+          ref={fabRef}
+          type="button"
+          className={styles.fab}
+          onClick={() => setIsOpen(true)}
+          aria-label="Abrir chat com a Sofia"
+        >
+          <MessageCircle size={26} />
+        </button>
+      )}
+
+      {isOpen && (
+        <div ref={panelRef} className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div className={styles.panelHeaderInfo}>
+              <div className={styles.avatar}>S</div>
+              <div>
+                <span className={styles.panelTitle}>Sofia</span>
+                <span className={styles.panelSubtitle}>
+                  <span className={styles.onlineDot} /> Clin+Saúde
+                </span>
               </div>
-              <button className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label="Fechar chat">
-                <X size={20} />
-              </button>
             </div>
-            <ChatInterface className={styles.panelChat} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+            <button className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label="Fechar chat">
+              <X size={20} />
+            </button>
+          </div>
+          <ChatInterface className={styles.panelChat} />
+        </div>
+      )}
+    </div>
   );
 }

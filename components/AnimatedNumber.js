@@ -1,21 +1,38 @@
 'use client';
-import { useRef, useEffect, useState } from 'react';
-import { useInView, animate } from 'motion/react';
+
+import { useRef } from 'react';
+import { gsap, useGSAP } from '../lib/gsap';
 
 export default function AnimatedNumber({ value, suffix = '' }) {
-  const [display, setDisplay] = useState(0);
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-40px' });
 
-  useEffect(() => {
-    if (!isInView) return;
-    const controls = animate(0, value, {
-      duration: 1.3,
-      ease: 'easeOut',
-      onUpdate: (v) => setDisplay(Math.round(v)),
-    });
-    return () => controls.stop();
-  }, [isInView, value]);
+  useGSAP(
+    () => {
+      const el = ref.current;
+      if (!el) return;
+      const mm = gsap.matchMedia();
 
-  return <span ref={ref}>{display}{suffix}</span>;
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        el.textContent = `${value}${suffix}`;
+      });
+
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        const counter = { v: 0 };
+        el.textContent = `0${suffix}`;
+        gsap.to(counter, {
+          v: value,
+          duration: 1.2,
+          snap: { v: 1 },
+          scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+          onUpdate: () => {
+            el.textContent = `${Math.round(counter.v)}${suffix}`;
+          },
+        });
+      });
+    },
+    { scope: ref, dependencies: [value, suffix] }
+  );
+
+  // Renderiza o valor final para SSR/no-JS; o GSAP zera antes de contar.
+  return <span ref={ref}>{value}{suffix}</span>;
 }

@@ -5,32 +5,18 @@
   width: 3.75rem;
   height: 3.75rem;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  background: var(--green-700);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-md);
   z-index: 200;
+  transition: background-color 0.15s ease;
 }
 
-.fabPulse {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius-full);
-  border: 2px solid var(--primary-light);
-  animation: chatFabPulse 2.4s infinite ease-out;
-}
-
-@keyframes chatFabPulse {
-  0% {
-    opacity: 0.7;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.5);
-  }
+.fab:hover {
+  background: var(--green-600);
 }
 
 .panel {
@@ -39,8 +25,10 @@
   bottom: 1.25rem;
   width: min(400px, calc(100vw - 2rem));
   height: min(620px, 80vh);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -52,8 +40,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.85rem 1rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-  color: white;
+  background: var(--green-900);
+  color: var(--paper);
   flex-shrink: 0;
 }
 
@@ -95,8 +83,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--primary-light);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+  background: var(--leaf);
 }
 
 .closeBtn {

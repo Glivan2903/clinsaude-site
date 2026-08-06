@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className={styles.wrapper}>
-      <div className={`glass ${styles.card}`}>
+      <div className={styles.card}>
         <h1 className={styles.title}>Painel Clin+Saúde</h1>
         <form onSubmit={handleSubmit}>
           {error && <p className={styles.error}>{error}</p>}

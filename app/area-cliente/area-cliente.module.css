@@ -1,3 +1,18 @@
+.contentCard {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .contentCard {
+    padding: 2.5rem;
+  }
+}
+
 .loginContainer {
   max-width: 420px;
   margin: 0.75rem auto;
@@ -108,6 +123,10 @@
 .welcomeText {
   font-size: 1.75rem;
   margin-bottom: 0.25rem;
+}
+
+.welcomeName {
+  color: var(--green-700);
 }
 
 .welcomeSub {
@@ -313,8 +332,10 @@
 .modalContainer {
   width: 100%;
   max-width: 550px;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
 }
 
@@ -356,13 +377,11 @@
 }
 
 .spinner {
-  color: var(--primary-color);
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  margin-right: 0.5rem;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.modalLoader svg {
+  margin-bottom: 1rem;
 }
 
 .currentSummary {
@@ -501,10 +520,10 @@
   width: 100%;
   max-width: 420px;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   background: var(--surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--line);
 }
 
 .dialogBody {

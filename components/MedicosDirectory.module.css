@@ -2,6 +2,7 @@
   position: relative;
   margin-bottom: 1.5rem;
   width: 100%;
+  max-width: 480px;
 }
 
 .searchIcon {
@@ -9,26 +10,25 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--ink-soft);
   pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
   padding: 0.85rem 1rem 0.85rem 2.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--surface);
+  color: var(--ink);
   font-size: 0.95rem;
-  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+  transition: border-color 0.15s ease;
 }
 
 .searchInput:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(43, 122, 62, 0.12);
-  background: var(--surface);
+  border-color: var(--green-700);
 }
 
 .grid {
@@ -51,31 +51,32 @@
 
 .card {
   background: var(--surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  padding: 0.85rem 1.25rem;
+  padding: 0.95rem 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
   text-align: left;
   width: 100%;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   box-shadow: var(--shadow-sm);
   text-decoration: none;
 }
 
 .card:hover {
-  border-color: var(--primary-light);
+  border-color: var(--line-strong);
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .avatar {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-  color: white;
+  background: var(--success-bg);
+  border: 1px solid var(--line);
+  color: var(--green-700);
+  font-family: var(--font-heading);
   font-weight: 700;
   font-size: 1.15rem;
   display: flex;
@@ -94,35 +95,44 @@
 .nome {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .especialidade {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--green-700);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conselho {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .arrow {
-  color: var(--text-muted);
+  color: var(--ink-soft);
   opacity: 0.5;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
   flex-shrink: 0;
 }
 
 .card:hover .arrow {
   transform: translateX(3px);
-  color: var(--primary-color);
+  color: var(--green-700);
   opacity: 1;
 }
 
 .noResults {
   text-align: center;
-  color: var(--text-muted);
+  color: var(--ink-soft);
   padding: 2rem 1rem;
 }

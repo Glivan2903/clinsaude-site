@@ -13,9 +13,10 @@ export default function Agendamento() {
       <Header />
       
       <section className="pageSection container">
-        <div className="glass contentCard" style={{ maxWidth: "1200px" }}>
+        <div className="contentCard" style={{ maxWidth: "1200px", background: "var(--surface)", border: "1px solid var(--line)", boxShadow: "var(--shadow-sm)" }}>
+          <span className="eyebrow text-center" style={{ display: "block" }}>Agendamento online</span>
           <h2 className="text-center responsiveTitle">
-            Agende sua Consulta ou Exame
+            Agende sua consulta ou exame
           </h2>
           <BookingWizard />
         </div>

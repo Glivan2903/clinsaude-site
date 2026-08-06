@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Send, RotateCcw } from 'lucide-react';
 import styles from './ChatInterface.module.css';
+import EcgLine from '../EcgLine';
+import { gsap, useGSAP } from '../../lib/gsap';
 
 const STORAGE_KEY = 'clinSaude_chatHistory';
 
@@ -54,6 +55,27 @@ export default function ChatInterface({ className }) {
     }
   }, [messages, isSending]);
 
+  const visibleMessages = messages.filter(
+    (m) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim().length > 0
+  );
+
+  // Entrada da última mensagem ("swap", §5.4).
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        const rows = listRef.current?.querySelectorAll(`.${styles.bubbleRow}`);
+        if (!rows || rows.length === 0) return;
+        gsap.fromTo(
+          rows[rows.length - 1],
+          { opacity: 0, y: 8 },
+          { opacity: 1, y: 0, duration: 0.3 }
+        );
+      });
+    },
+    { scope: listRef, dependencies: [visibleMessages.length, isSending] }
+  );
+
   const handleReset = () => {
     const fresh = [greetingMessage()];
     setMessages(fresh);
@@ -93,42 +115,26 @@ export default function ChatInterface({ className }) {
     }
   };
 
-  const visibleMessages = messages.filter(
-    (m) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim().length > 0
-  );
-
   return (
     <div className={`${styles.chat} ${className || ''}`}>
       <div className={styles.messageList} ref={listRef}>
-        <AnimatePresence initial={false}>
-          {visibleMessages.map((m, idx) => (
-            <motion.div
-              key={idx}
-              className={`${styles.bubbleRow} ${m.role === 'user' ? styles.bubbleRowUser : ''}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              <div className={`${styles.bubble} ${m.role === 'user' ? styles.bubbleUser : styles.bubbleAssistant}`}>
-                {m.content}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        {visibleMessages.map((m, idx) => (
+          <div
+            key={idx}
+            className={`${styles.bubbleRow} ${m.role === 'user' ? styles.bubbleRowUser : ''}`}
+          >
+            <div className={`${styles.bubble} ${m.role === 'user' ? styles.bubbleUser : styles.bubbleAssistant}`}>
+              {m.content}
+            </div>
+          </div>
+        ))}
 
         {isSending && (
-          <motion.div
-            className={styles.bubbleRow}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+          <div className={styles.bubbleRow}>
             <div className={`${styles.bubble} ${styles.bubbleAssistant} ${styles.typingBubble}`}>
-              <span className={styles.typingDot} />
-              <span className={styles.typingDot} />
-              <span className={styles.typingDot} />
+              <EcgLine variant="spinner" />
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
 
@@ -145,7 +151,7 @@ export default function ChatInterface({ className }) {
         <input
           type="text"
           className={styles.textInput}
-          placeholder="Digite sua mensagem..."
+          placeholder="Digite sua mensagem"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isSending}

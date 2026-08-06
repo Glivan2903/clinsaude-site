@@ -1,120 +1,143 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import styles from './Header.module.css';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import styles from './Header.module.css';
+import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
+
+const NAV_LINKS = [
+  { href: '/#sobre', label: 'Sobre Nós' },
+  { href: '/#especialidades', label: 'Especialidades' },
+  { href: '/medicos', label: 'Profissionais' },
+  { href: '/#contato', label: 'Contato' },
+];
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef(null);
+  const panelRef = useRef(null);
+  const menuTl = useRef(null);
+  const iconTl = useRef(null);
+
+  useGSAP(
+    () => {
+      // Estado "rolado": sombra + barra mais compacta.
+      ScrollTrigger.create({
+        start: 8,
+        end: 'max',
+        toggleClass: { className: styles.scrolled, targets: rootRef.current },
+      });
+
+      const mm = gsap.matchMedia();
+      mm.add(
+        [
+          '(prefers-reduced-motion: no-preference)',
+          '(prefers-reduced-motion: reduce)',
+        ],
+        (ctx) => {
+          const reduced = ctx.conditions[1] || false;
+          const speed = reduced ? 0 : 1;
+
+          gsap.set(panelRef.current, { xPercent: 100 });
+
+          menuTl.current = gsap
+            .timeline({ paused: true })
+            .set(panelRef.current, { visibility: 'visible' })
+            .to(panelRef.current, { xPercent: 0, duration: 0.35 * speed, ease: 'power3.out' })
+            .from(
+              `.${styles.mobileNavLink}`,
+              { opacity: 0, x: 16, stagger: 0.05 * speed, duration: 0.3 * speed },
+              reduced ? 0 : '-=0.15'
+            );
+
+          iconTl.current = gsap
+            .timeline({ paused: true })
+            .to(`.${styles.barTop}`, { y: 5, rotate: 45, duration: 0.25 * speed }, 0)
+            .to(`.${styles.barBottom}`, { y: -5, rotate: -45, duration: 0.25 * speed }, 0);
+        }
+      );
+    },
+    { scope: rootRef }
+  );
+
+  useEffect(() => {
+    if (!menuTl.current) return;
+    if (isOpen) {
+      menuTl.current.play();
+      iconTl.current?.play();
+    } else {
+      menuTl.current.reverse();
+      iconTl.current?.reverse();
+    }
+  }, [isOpen]);
+
+  const close = () => setIsOpen(false);
 
   return (
-    <motion.header
-      className={styles.header}
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-    >
+    <header ref={rootRef} className={styles.header}>
       <div className={`container ${styles.headerContent}`}>
         <div className={styles.logo}>
-          <Link href="/">
-            <img
-              src="/logo.png"
-              alt="ClinSaúde"
-              className={styles.logoImg}
-            />
+          <Link href="/" onClick={close}>
+            <img src="/logo.png" alt="ClinSaúde" className={styles.logoImg} />
           </Link>
         </div>
 
-        {/* Desktop Nav */}
-        <nav className={styles.desktopNav}>
-          <Link href="/#sobre" className={styles.navLink}>Sobre Nós</Link>
-          <Link href="/#especialidades" className={styles.navLink}>Especialidades</Link>
-          <Link href="/#contato" className={styles.navLink}>Contato</Link>
+        <nav className={styles.desktopNav} aria-label="Navegação principal">
+          {NAV_LINKS.map((link) => (
+            <Link key={link.href} href={link.href} className={styles.navLink}>
+              {link.label}
+            </Link>
+          ))}
         </nav>
 
-        {/* Desktop Actions */}
         <div className={styles.desktopActions}>
-          <Link href="/area-cliente" className={styles.navLink} style={{ fontSize: '0.9rem' }}>
+          <Link href="/area-cliente" className={styles.navLink}>
             Área do Cliente
           </Link>
           <Link href="/agendamento" className="btn-primary">
-            Agendar Consulta
+            Agendar consulta
           </Link>
         </div>
 
-        {/* Mobile Hamburger Button */}
-        <motion.button
+        <button
+          type="button"
           className={styles.hamburgerBtn}
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle menu"
-          whileTap={{ scale: 0.9 }}
-          transition={{ duration: 0.12 }}
+          onClick={() => setIsOpen((v) => !v)}
+          aria-expanded={isOpen}
+          aria-controls="menu-mobile"
+          aria-label={isOpen ? 'Fechar menu' : 'Abrir menu'}
         >
-          <AnimatePresence mode="wait" initial={false}>
-            {isOpen ? (
-              <motion.span
-                key="close"
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                transition={{ duration: 0.18 }}
-              >
-                <X size={24} />
-              </motion.span>
-            ) : (
-              <motion.span
-                key="menu"
-                initial={{ rotate: 90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: -90, opacity: 0 }}
-                transition={{ duration: 0.18 }}
-              >
-                <Menu size={24} />
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </motion.button>
+          <span className={styles.barTop} />
+          <span className={styles.barBottom} />
+        </button>
       </div>
 
-      {/* Mobile Menu Panel */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            className={`${styles.mobileMenu} glass`}
-            initial={{ opacity: 0, y: -8, scaleY: 0.96 }}
-            animate={{ opacity: 1, y: 0, scaleY: 1 }}
-            exit={{ opacity: 0, y: -6, scaleY: 0.97 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            style={{ transformOrigin: 'top' }}
+      <div
+        id="menu-mobile"
+        ref={panelRef}
+        className={styles.mobileMenu}
+        aria-hidden={!isOpen}
+      >
+        <nav className={styles.mobileNav} aria-label="Navegação móvel">
+          {NAV_LINKS.map((link) => (
+            <Link key={link.href} href={link.href} className={styles.mobileNavLink} onClick={close} tabIndex={isOpen ? 0 : -1}>
+              {link.label}
+            </Link>
+          ))}
+          <hr className={styles.divider} />
+          <Link href="/area-cliente" className={styles.mobileNavLink} onClick={close} tabIndex={isOpen ? 0 : -1}>
+            Área do Cliente
+          </Link>
+          <Link
+            href="/agendamento"
+            className={`btn-primary ${styles.mobileCta}`}
+            onClick={close}
+            tabIndex={isOpen ? 0 : -1}
           >
-            <div className={styles.mobileNav}>
-              <Link href="/#sobre" className={styles.mobileNavLink} onClick={() => setIsOpen(false)}>
-                Sobre Nós
-              </Link>
-              <Link href="/#especialidades" className={styles.mobileNavLink} onClick={() => setIsOpen(false)}>
-                Especialidades
-              </Link>
-              <Link href="/#contato" className={styles.mobileNavLink} onClick={() => setIsOpen(false)}>
-                Contato
-              </Link>
-              <hr className={styles.divider} />
-              <Link href="/area-cliente" className={styles.mobileNavLink} onClick={() => setIsOpen(false)}>
-                Área do Cliente
-              </Link>
-              <Link
-                href="/agendamento"
-                className="btn-primary"
-                style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}
-                onClick={() => setIsOpen(false)}
-              >
-                Agendar Consulta
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.header>
+            Agendar consulta
+          </Link>
+        </nav>
+      </div>
+    </header>
   );
 }

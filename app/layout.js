@@ -1,15 +1,21 @@
-import { Inter, Outfit } from "next/font/google";
+import { Figtree, Fraunces } from "next/font/google";
 import "./globals.css";
 import ChatWidget from "../components/chat/ChatWidget";
 
-const inter = Inter({
+const figtree = Figtree({
   variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
-const outfit = Outfit({
+// Serifa suave com curvas macias — troca a grotesca (propositalmente robusta,
+// é literalmente o que "grotesque" significa em tipografia) por um traço
+// mais refinado, sem perder personalidade.
+const fraunces = Fraunces({
   variable: "--font-heading",
   subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
 });
 
 export const metadata = {
@@ -20,7 +26,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${outfit.variable}`}>
+    <html lang="pt-BR" className={`${figtree.variable} ${fraunces.variable}`}>
       <body>
         {children}
         <ChatWidget />

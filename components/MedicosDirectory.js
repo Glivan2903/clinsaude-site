@@ -1,45 +1,89 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { Search, ChevronRight } from 'lucide-react';
 import styles from './MedicosDirectory.module.css';
+import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
 
 export default function MedicosDirectory({ profissionais }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const rootRef = useRef(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.set(`.${styles.card}`, { opacity: 0, y: 24 });
+        ScrollTrigger.batch(`.${styles.card}`, {
+          start: 'top 90%',
+          once: true,
+          onEnter: (batch) =>
+            gsap.to(batch, { opacity: 1, y: 0, duration: 0.55, stagger: 0.05 }),
+        });
+      });
+    },
+    { scope: rootRef }
+  );
+
+  const lift = (e, up) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    gsap.to(e.currentTarget, { y: up ? -2 : 0, duration: 0.25 });
+  };
 
   const query = searchQuery.toLowerCase();
   const filtrados = profissionais.filter(
-    (p) => p.nome.toLowerCase().includes(query) || p.especialidade.toLowerCase().includes(query)
+    (p) =>
+      p.nome.toLowerCase().includes(query) ||
+      p.especialidades.some((e) => e.especialidade.toLowerCase().includes(query))
   );
 
   return (
-    <div>
+    <div ref={rootRef}>
       <div className={styles.searchWrapper}>
         <Search size={18} className={styles.searchIcon} />
         <input
           type="text"
-          placeholder="Buscar por nome ou especialidade..."
+          placeholder="Buscar por nome ou especialidade"
           className={styles.searchInput}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Buscar profissional por nome ou especialidade"
         />
       </div>
 
       <div className={styles.grid}>
         {filtrados.map((prof) => (
-          <Link key={prof.slug} href={`/medicos/${prof.slug}`} className={styles.card}>
+          <Link
+            key={prof.slug}
+            href={`/medicos/${prof.slug}`}
+            className={styles.card}
+            onMouseEnter={(e) => lift(e, true)}
+            onMouseLeave={(e) => lift(e, false)}
+          >
             <div className={styles.avatar}>{(prof.apelido || prof.nome).charAt(0)}</div>
             <div className={styles.info}>
               <span className={styles.nome}>{prof.apelido || prof.nome}</span>
-              <span className={styles.especialidade}>{prof.especialidade}</span>
+              <span className={styles.especialidade}>
+                {prof.especialidades.map((e) => e.especialidade).join(' · ')}
+              </span>
+              {prof.consCodigo && (
+                <span className={styles.conselho}>
+                  {prof.consCodigo} {prof.profCodigo}/{prof.profEstadoCons}
+                </span>
+              )}
             </div>
             <ChevronRight className={styles.arrow} size={18} />
           </Link>
         ))}
       </div>
 
-      {filtrados.length === 0 && <p className={styles.noResults}>Nenhum profissional encontrado.</p>}
+      {filtrados.length === 0 && (
+        <p className={styles.noResults}>
+          Não encontramos profissionais para essa busca. Tente outro nome ou
+          especialidade.
+        </p>
+      )}
     </div>
   );
 }
