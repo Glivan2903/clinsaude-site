@@ -74,8 +74,8 @@ export default function HeroSection() {
 
         <div className={styles.photoWrap}>
           <img
-            src="/hero-bg1.jpg"
-            alt="Recepção da Clínica Clin+Saúde"
+            src="/fachada.png"
+            alt="Fachada da Clínica Clin+Saúde"
             className={styles.photo}
           />
         </div>
