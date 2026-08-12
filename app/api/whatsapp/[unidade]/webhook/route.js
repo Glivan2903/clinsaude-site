@@ -135,13 +135,18 @@ async function processarEvento(unidade, body) {
 
   if (await estaPausada(unidade, numero)) return; // atendente humano está conversando
 
-  // Conversa nova (sem histórico) já ganha saudação pelo prompt padrão — aqui
-  // só cobre quem TEM histórico mas sumiu por mais de SAUDACAO_GAP_MS.
+  const primeiraMensagem = historicoAnterior.length === 0;
+  // Conversa nova já é coberta por primeiraMensagem acima — aqui só cobre
+  // quem TEM histórico mas sumiu por mais de SAUDACAO_GAP_MS.
   const saudarNovamente =
-    historicoAnterior.length > 0 &&
+    !primeiraMensagem &&
     (!ultimaAtividadeAnterior || Date.now() - ultimaAtividadeAnterior > SAUDACAO_GAP_MS);
 
-  const { reply, historico } = await runSofiaTurn(historicoComPergunta, { today: new Date(), saudarNovamente });
+  const { reply, historico } = await runSofiaTurn(historicoComPergunta, {
+    today: new Date(),
+    saudarNovamente,
+    primeiraMensagem,
+  });
   await salvarHistorico(unidade, numero, historico);
 
   const envio = await sendText(unidade, { numero, texto: reply });
