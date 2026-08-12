@@ -23,6 +23,7 @@ Copie `.env.example` para `.env` e preencha o que for necessário para a área q
 | `CRON_SECRET` | Protege as rotas `/api/cron/*` (chamadas só pelo Vercel Cron) |
 | `UAZAPI_BASE_URL_<UNIDADE>` / `UAZAPI_TOKEN_<UNIDADE>` | Instância WhatsApp de cada unidade (Matriz/Filial), já criada na UAZAPI |
 | `UAZAPI_WEBHOOK_SECRET` | Segredo compartilhado que valida o webhook do WhatsApp (qualquer string aleatória) |
+| `SUPORTE_WHATSAPP_NUMERO` | WhatsApp que recebe o aviso quando a Sofia escala o atendimento pra um humano (paciente pediu atendente, ou ela não tem uma informação que precisa) |
 | `NEXT_PUBLIC_FEATURE_BLOG` / `NEXT_PUBLIC_FEATURE_INSTAGRAM` / `NEXT_PUBLIC_FEATURE_CALENDARIO` / `NEXT_PUBLIC_FEATURE_WHATSAPP` / `NEXT_PUBLIC_FEATURE_CHAT` / `NEXT_PUBLIC_FEATURE_PROFISSIONAIS` / `NEXT_PUBLIC_FEATURE_AGENDAMENTO` | Liga (`true`, padrão) ou desliga (`false`) cada funcionalidade por completo — página pública, seção do admin, link de navegação e cron/rota correspondentes (ver `lib/featureFlags.js`). `AGENDAMENTO` desliga só a marcação de consulta NOVA pelo site; não afeta a Área do Cliente |
 | `NEXT_PUBLIC_FEATURE_WHATSAPP_INBOX` | Com `false`, `/admin/whatsapp` mostra só a configuração de conexão de cada unidade (QR code/pairing code/webhook) — sem o inbox de conversas (lista, chat, envio manual, filtros) |
 

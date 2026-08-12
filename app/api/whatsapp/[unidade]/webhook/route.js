@@ -146,6 +146,7 @@ async function processarEvento(unidade, body) {
     today: new Date(),
     saudarNovamente,
     primeiraMensagem,
+    contexto: { unidade, nome, telefone: numero },
   });
   await salvarHistorico(unidade, numero, historico);
 
