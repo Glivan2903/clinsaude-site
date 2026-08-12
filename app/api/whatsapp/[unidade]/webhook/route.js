@@ -14,11 +14,13 @@ import {
   jaProcessado,
   marcarProcessado,
   registrarContato,
+  getContato,
   adicionarMensagemPendente,
   obterELimparPendentes,
   reivindicarDebounce,
   ehVencedorDebounce,
   encerrarDebounce,
+  SAUDACAO_GAP_MS,
 } from '@/lib/whatsappConversations';
 
 export const runtime = 'nodejs';
@@ -106,6 +108,11 @@ async function processarEvento(unidade, body) {
     return;
   }
 
+  // Captura a última atividade ANTES de registrarContato sobrescrever com
+  // "agora" — é essa diferença que diz se o paciente sumiu por um tempo.
+  const contatoAnterior = await getContato(unidade, numero);
+  const ultimaAtividadeAnterior = contatoAnterior?.ultimaAtividade || null;
+
   await marcarProcessado(unidade, messageId);
   await registrarContato(unidade, numero, { nome, ultimaMensagem: texto, autor: 'paciente' });
 
@@ -122,12 +129,19 @@ async function processarEvento(unidade, body) {
   await encerrarDebounce(unidade, numero);
   const textoCombinado = (pendentes.length ? pendentes : [texto]).join('\n');
 
-  const historicoComPergunta = [...(await getHistorico(unidade, numero)), { role: 'user', content: textoCombinado }];
+  const historicoAnterior = await getHistorico(unidade, numero);
+  const historicoComPergunta = [...historicoAnterior, { role: 'user', content: textoCombinado }];
   await salvarHistorico(unidade, numero, historicoComPergunta);
 
   if (await estaPausada(unidade, numero)) return; // atendente humano está conversando
 
-  const { reply, historico } = await runSofiaTurn(historicoComPergunta, { today: new Date() });
+  // Conversa nova (sem histórico) já ganha saudação pelo prompt padrão — aqui
+  // só cobre quem TEM histórico mas sumiu por mais de SAUDACAO_GAP_MS.
+  const saudarNovamente =
+    historicoAnterior.length > 0 &&
+    (!ultimaAtividadeAnterior || Date.now() - ultimaAtividadeAnterior > SAUDACAO_GAP_MS);
+
+  const { reply, historico } = await runSofiaTurn(historicoComPergunta, { today: new Date(), saudarNovamente });
   await salvarHistorico(unidade, numero, historico);
 
   const envio = await sendText(unidade, { numero, texto: reply });
