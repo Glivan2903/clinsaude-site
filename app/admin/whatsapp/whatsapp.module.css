@@ -9,3 +9,11 @@
   display: flex;
   min-height: 0;
 }
+
+@media (max-width: 860px) {
+  /* Menos espaço perdido nas bordas — no celular o inbox já ocupa a tela
+     quase toda, então cada pixel de padding conta pra ver a conversa. */
+  .content {
+    padding: 0.75rem;
+  }
+}

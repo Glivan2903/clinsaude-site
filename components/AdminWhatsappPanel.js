@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { X, Settings, Search, Send, MessageCircleMore } from 'lucide-react';
+import { X, Settings, Search, Send, MessageCircleMore, ArrowLeft } from 'lucide-react';
 import { gsap, useGSAP } from '../lib/gsap';
 import styles from './AdminWhatsappPanel.module.css';
 import { FEATURE_WHATSAPP_INBOX } from '../lib/featureFlags';
@@ -75,6 +75,26 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
   const [erroEnvio, setErroEnvio] = useState(null);
   const mensagensFimRef = useRef(null);
   const listaConversasRef = useRef(null);
+  const inboxRef = useRef(null);
+  const [alturaInbox, setAlturaInbox] = useState(null);
+
+  // Calcula a altura disponível de verdade (viewport menos o que já está
+  // acima do inbox — nav, cabeçalho, padding) em vez de um número fixo no
+  // CSS: evita tanto o "a conversa desce e não dá pra rolar" (container sem
+  // altura travada) quanto sobra/faltar espaço no mobile, onde o nav vira
+  // uma barra horizontal de altura diferente do desktop.
+  useEffect(() => {
+    if (!FEATURE_WHATSAPP_INBOX) return;
+    function recalcular() {
+      if (!inboxRef.current) return;
+      const topo = inboxRef.current.getBoundingClientRect().top;
+      const margemInferior = window.innerWidth <= 860 ? 12 : 32;
+      setAlturaInbox(Math.max(360, window.innerHeight - topo - margemInferior));
+    }
+    recalcular();
+    window.addEventListener('resize', recalcular);
+    return () => window.removeEventListener('resize', recalcular);
+  }, []);
 
   useGSAP(
     () => {
@@ -386,7 +406,11 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
           ))}
         </div>
       ) : (
-      <div className={styles.inbox}>
+      <div
+        ref={inboxRef}
+        className={`${styles.inbox} ${conversaSelecionada ? styles.mostrandoChat : ''}`}
+        style={alturaInbox ? { height: `${alturaInbox}px` } : undefined}
+      >
         <aside className={styles.sidebar}>
           <div className={styles.sidebarTopo}>
             <h2 className={styles.sidebarTitulo}>Conversas</h2>
@@ -522,6 +546,14 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
           ) : (
             <>
               <header className={styles.chatHeader}>
+                <button
+                  type="button"
+                  className={styles.voltarBtn}
+                  onClick={() => setConversaSelecionada(null)}
+                  aria-label="Voltar para a lista de conversas"
+                >
+                  <ArrowLeft size={18} />
+                </button>
                 <span className={styles.avatar} style={{ background: corAvatar(conversaAtual?.nome || conversaSelecionada.numero) }}>
                   {inicialDe(conversaAtual?.nome || conversaSelecionada.numero)}
                 </span>
