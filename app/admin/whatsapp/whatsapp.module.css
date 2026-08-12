@@ -1,0 +1,11 @@
+/* Sobrescreve o max-width:900px do .content padrão do admin — o inbox do
+   Whatsapp precisa da largura toda da tela pra caber sidebar + chat lado a
+   lado de forma confortável, diferente das outras páginas do admin (que são
+   formulários/listas verticais). */
+.content {
+  flex: 1;
+  width: 100%;
+  padding: 2rem;
+  display: flex;
+  min-height: 0;
+}

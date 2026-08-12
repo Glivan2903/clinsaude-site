@@ -6,6 +6,7 @@ import { UNIDADES_INFO } from '@/lib/unidadesInfo';
 import { getStatus, getInstanciaUazapi } from '@/lib/uazapi';
 import { FEATURE_WHATSAPP } from '@/lib/featureFlags';
 import styles from '../page.module.css';
+import wa from './whatsapp.module.css';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +45,7 @@ export default async function AdminWhatsappPage() {
           <h1 className={styles.title}>Whatsapp</h1>
           <AdminLogoutButton />
         </div>
-        <div className={styles.content}>
+        <div className={wa.content}>
           <AdminWhatsappPanel unidadesIniciais={unidades} />
         </div>
       </div>
