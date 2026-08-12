@@ -57,13 +57,20 @@
   color: var(--green-700);
 }
 
-.itemAtivo {
+/* Seletor composto (.item.itemAtivo / .drawerItem.itemAtivo) de propósito:
+   tem mais especificidade que .item/.drawerItem sozinhos, então o texto
+   branco sempre vence independente da ordem das regras no arquivo — sem
+   isso, .drawerItem (definido depois) sobrescrevia a cor e o texto ficava
+   quase ilegível em cima do fundo verde. */
+.item.itemAtivo,
+.drawerItem.itemAtivo {
   background: var(--green-700);
   color: var(--surface);
   border-left-color: var(--green-900);
 }
 
-.itemAtivo:hover {
+.item.itemAtivo:hover,
+.drawerItem.itemAtivo:hover {
   background: var(--green-700);
   color: var(--surface);
 }

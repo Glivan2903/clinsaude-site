@@ -523,7 +523,7 @@
 
 .modal {
   width: 100%;
-  max-width: 640px;
+  max-width: 460px;
   max-height: 85vh;
   overflow-y: auto;
   background: var(--surface);
@@ -543,8 +543,25 @@
   background: var(--surface);
 }
 
+.modalHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.modalTitulo {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--green-900);
+}
+
 .modalBody {
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .fechar {
@@ -583,26 +600,141 @@
   font-weight: 600;
 }
 
+/* Badge de status do modal (distinto de .status/.statusAtivo acima, que
+   pertencem à visão simplificada com FEATURE_WHATSAPP_INBOX=false). */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.statusBadgeConectado {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.statusBadgeConectado .statusDot {
+  background: var(--success);
+}
+
+.statusBadgeConectando {
+  background: #fff6e0;
+  color: #9a6b00;
+}
+
+.statusBadgeConectando .statusDot {
+  background: #d69e00;
+}
+
+.statusBadgeErro {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.statusBadgeErro .statusDot {
+  background: var(--error);
+}
+
+.estadoVazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.estadoVazio svg {
+  color: var(--ink-soft);
+}
+
+.codigo {
+  font-family: monospace;
+  font-size: 0.82em;
+  background: var(--paper);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+}
+
+.secaoConectada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1.25rem 1rem 0.5rem;
+  text-align: center;
+}
+
+.iconeConectado {
+  color: var(--success);
+  margin-bottom: 0.3rem;
+}
+
+.conectadoTexto {
+  font-weight: 700;
+  color: var(--green-900);
+  font-size: 1.02rem;
+}
+
+.conectadoNumero {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  margin-bottom: 0.85rem;
+}
+
+.secaoConexao {
+  display: flex;
+  flex-direction: column;
+}
+
 .modoTabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.4rem;
+  padding: 0.2rem;
+  border-radius: var(--radius-full);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  margin-bottom: 1.1rem;
 }
 
 .modoTab {
-  padding: 0.45rem 0.9rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.7rem;
   border-radius: var(--radius-full);
-  border: 1px solid var(--line);
-  background: var(--paper);
+  border: none;
+  background: transparent;
   color: var(--ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
 }
 
 .modoTabAtivo {
   background: var(--green-700);
-  border-color: var(--green-700);
   color: var(--surface);
 }
 
@@ -610,7 +742,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
 }
 
 .telefoneInput {
@@ -630,9 +762,9 @@
 
 .paircodeValor {
   font-family: monospace;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.2em;
   color: var(--green-900);
 }
 
@@ -640,17 +772,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
+  gap: 0.6rem;
+  padding: 1.25rem 1rem;
   border: 1px dashed var(--line-strong);
   border-radius: var(--radius-md);
   background: var(--paper);
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
 }
 
 .qrImg {
-  width: 220px;
-  height: 220px;
+  width: 200px;
+  height: 200px;
+  max-width: 100%;
+  border-radius: var(--radius-sm);
   image-rendering: pixelated;
 }
 
@@ -658,24 +792,68 @@
   font-size: 0.78rem;
   color: var(--ink-soft);
   text-align: center;
+  line-height: 1.5;
 }
 
 .aviso {
   font-size: 0.85rem;
   color: var(--ink-soft);
-  margin: 0.75rem 0.9rem;
+  margin: 0 0 0.9rem;
 }
 
 .erro {
   color: var(--error);
   font-size: 0.8rem;
-  margin: 0.5rem 0.1rem;
+  margin: 0 0 0.9rem;
 }
 
-.acoes {
+.acoesConexao {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.botaoLargo {
+  flex: 1;
+  min-width: 200px;
+}
+
+.secaoWebhook {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.secaoWebhookTexto {
+  min-width: 200px;
+  flex: 1;
+}
+
+.secaoWebhookTitulo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  color: var(--green-900);
+  font-size: 0.92rem;
+}
+
+.secaoWebhookDescricao {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-top: 0.3rem;
+  line-height: 1.5;
+}
+
+.webhookOk {
+  font-size: 0.78rem;
+  color: var(--success);
+  margin-top: 0.5rem;
+  word-break: break-all;
 }
 
 .toggleIa {
@@ -744,5 +922,41 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* Modal de configuração da unidade: usa a largura quase toda da tela,
+     ações e botão do webhook empilham em vez de ficar apertados numa
+     linha só. */
+  .overlay {
+    padding: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .modal {
+    max-width: none;
+    max-height: 90vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .modalHeader {
+    padding: 1.1rem 1.25rem;
+  }
+
+  .modalBody {
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+
+  .botaoLargo {
+    min-width: 100%;
+  }
+
+  .secaoWebhook {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .secaoWebhook button {
+    width: 100%;
   }
 }

@@ -1,7 +1,19 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { X, Settings, Search, Send, MessageCircleMore, ArrowLeft } from 'lucide-react';
+import {
+  X,
+  Settings,
+  Search,
+  Send,
+  MessageCircleMore,
+  ArrowLeft,
+  QrCode,
+  KeyRound,
+  CheckCircle2,
+  AlertTriangle,
+  Webhook,
+} from 'lucide-react';
 import { gsap, useGSAP } from '../lib/gsap';
 import styles from './AdminWhatsappPanel.module.css';
 import { FEATURE_WHATSAPP_INBOX } from '../lib/featureFlags';
@@ -279,6 +291,9 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
         if (data.success && data.conectado) {
           pararQrPolling(unidadeId);
           atualizarUnidade(unidadeId, data);
+          // Número acabou de ficar online (QR escaneado) — configura o
+          // webhook sozinho, sem precisar clicar em nada.
+          configurarWebhook(unidadeId);
         }
       } catch {
         // Falha pontual de polling não interrompe as próximas tentativas.
@@ -305,7 +320,13 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
       const data = await res.json();
       if (data.success) {
         atualizarUnidade(unidadeId, data);
-        if (!data.conectado) iniciarQrPolling(unidadeId);
+        if (!data.conectado) {
+          iniciarQrPolling(unidadeId);
+        } else {
+          // Já conectou na hora (sessão antiga ainda válida) — configura o
+          // webhook sozinho também nesse caso.
+          await configurarWebhook(unidadeId);
+        }
       } else {
         setErroPorUnidade((prev) => ({ ...prev, [unidadeId]: data.error || 'Não foi possível gerar o QR code.' }));
       }
@@ -632,9 +653,20 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className={styles.modalHeader}>
-              <div>
-                <span className={styles.unidadeNome}>{unidadeConfig.nome}</span>
-                <span className={`${styles.status} ${unidadeConfig.conectado ? styles.statusAtivo : ''}`}>
+              <div className={styles.modalHeaderInfo}>
+                <span className={styles.modalTitulo}>{unidadeConfig.nome}</span>
+                <span
+                  className={`${styles.statusBadge} ${
+                    unidadeConfig.conectado
+                      ? styles.statusBadgeConectado
+                      : unidadeConfig.estado === 'connecting'
+                        ? styles.statusBadgeConectando
+                        : unidadeConfig.estado === 'erro'
+                          ? styles.statusBadgeErro
+                          : ''
+                  }`}
+                >
+                  <span className={styles.statusDot} />
                   {estadoLabel(unidadeConfig)}
                   {unidadeConfig.conectado && unidadeConfig.numero ? ` · ${unidadeConfig.numero}` : ''}
                 </span>
@@ -646,19 +678,38 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
 
             <div className={styles.modalBody}>
               {!unidadeConfig.configurada ? (
-                <p className={styles.aviso}>
-                  Configure UAZAPI_BASE_URL_{unidadeConfig.id.toUpperCase()} e UAZAPI_TOKEN_{unidadeConfig.id.toUpperCase()} no
-                  ambiente para gerenciar esta unidade.
-                </p>
+                <div className={styles.estadoVazio}>
+                  <AlertTriangle size={30} strokeWidth={1.5} />
+                  <p>
+                    Configure <code className={styles.codigo}>UAZAPI_BASE_URL_{unidadeConfig.id.toUpperCase()}</code> e{' '}
+                    <code className={styles.codigo}>UAZAPI_TOKEN_{unidadeConfig.id.toUpperCase()}</code> no ambiente para
+                    gerenciar esta unidade.
+                  </p>
+                </div>
+              ) : unidadeConfig.conectado ? (
+                <div className={styles.secaoConectada}>
+                  <CheckCircle2 size={38} strokeWidth={1.5} className={styles.iconeConectado} />
+                  <p className={styles.conectadoTexto}>WhatsApp conectado</p>
+                  {unidadeConfig.numero && <p className={styles.conectadoNumero}>{unidadeConfig.numero}</p>}
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => desconectar(unidadeConfig.id)}
+                    disabled={acao === 'desconectando'}
+                  >
+                    {acao === 'desconectando' ? 'Desconectando...' : 'Desconectar'}
+                  </button>
+                </div>
               ) : (
-                <>
-                  {!unidadeConfig.conectado && unidadeConfig.estado !== 'connecting' && (
+                <div className={styles.secaoConexao}>
+                  {unidadeConfig.estado !== 'connecting' && (
                     <div className={styles.modoTabs}>
                       <button
                         type="button"
                         className={`${styles.modoTab} ${modoConexao === 'qrcode' ? styles.modoTabAtivo : ''}`}
                         onClick={() => setModoConexao('qrcode')}
                       >
+                        <QrCode size={15} />
                         QR code
                       </button>
                       <button
@@ -666,12 +717,13 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                         className={`${styles.modoTab} ${modoConexao === 'paircode' ? styles.modoTabAtivo : ''}`}
                         onClick={() => setModoConexao('paircode')}
                       >
-                        Código de pareamento
+                        <KeyRound size={15} />
+                        Pareamento
                       </button>
                     </div>
                   )}
 
-                  {!unidadeConfig.conectado && unidadeConfig.estado !== 'connecting' && modoConexao === 'paircode' && !mostrarPaircode && (
+                  {unidadeConfig.estado !== 'connecting' && modoConexao === 'paircode' && !mostrarPaircode && (
                     <div className={styles.paircodeForm}>
                       <input
                         type="tel"
@@ -708,52 +760,65 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                     </div>
                   )}
 
-                  {qrExpirado && !unidadeConfig.conectado && (
+                  {qrExpirado && (
                     <p className={styles.aviso}>
                       {modoConexao === 'paircode' ? 'Código de pareamento expirado.' : 'QR code expirado.'} Gere um novo para conectar.
                     </p>
                   )}
 
                   {erroConfig && <p className={styles.erro}>{erroConfig}</p>}
-                  {webhookOk && <p className={styles.aviso}>Webhook configurado: {webhookOk}</p>}
 
-                  <div className={styles.acoes}>
-                    {!unidadeConfig.conectado && (
-                      <button
-                        type="button"
-                        className="btn-primary"
-                        onClick={() =>
-                          conectar(unidadeConfig.id, modoConexao === 'paircode' ? telefonePareamento.replace(/\D/g, '') : undefined)
-                        }
-                        disabled={acao === 'conectando' || (modoConexao === 'paircode' && !telefoneValido)}
-                      >
-                        {acao === 'conectando'
-                          ? modoConexao === 'paircode' ? 'Gerando código...' : 'Gerando QR code...'
-                          : modoConexao === 'paircode'
-                            ? mostrarPaircode ? 'Gerar novo código' : 'Gerar código de pareamento'
-                            : mostrarQr ? 'Gerar novo QR code' : 'Conectar / Gerar QR code'}
-                      </button>
-                    )}
-                    {(unidadeConfig.conectado || unidadeConfig.estado === 'connecting') && (
+                  <div className={styles.acoesConexao}>
+                    <button
+                      type="button"
+                      className={`btn-primary ${styles.botaoLargo}`}
+                      onClick={() =>
+                        conectar(unidadeConfig.id, modoConexao === 'paircode' ? telefonePareamento.replace(/\D/g, '') : undefined)
+                      }
+                      disabled={acao === 'conectando' || (modoConexao === 'paircode' && !telefoneValido)}
+                    >
+                      {acao === 'conectando'
+                        ? modoConexao === 'paircode' ? 'Gerando código...' : 'Gerando QR code...'
+                        : modoConexao === 'paircode'
+                          ? mostrarPaircode ? 'Gerar novo código' : 'Gerar código de pareamento'
+                          : mostrarQr ? 'Gerar novo QR code' : 'Conectar / Gerar QR code'}
+                    </button>
+                    {unidadeConfig.estado === 'connecting' && (
                       <button
                         type="button"
                         className="btn-secondary"
                         onClick={() => desconectar(unidadeConfig.id)}
                         disabled={acao === 'desconectando'}
                       >
-                        {acao === 'desconectando' ? 'Desconectando...' : 'Desconectar'}
+                        {acao === 'desconectando' ? 'Cancelando...' : 'Cancelar'}
                       </button>
                     )}
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => configurarWebhook(unidadeConfig.id)}
-                      disabled={acao === 'configurando_webhook'}
-                    >
-                      {acao === 'configurando_webhook' ? 'Configurando webhook...' : 'Configurar webhook'}
-                    </button>
                   </div>
-                </>
+                </div>
+              )}
+
+              {unidadeConfig.configurada && (
+                <div className={styles.secaoWebhook}>
+                  <div className={styles.secaoWebhookTexto}>
+                    <span className={styles.secaoWebhookTitulo}>
+                      <Webhook size={15} />
+                      Webhook
+                    </span>
+                    <p className={styles.secaoWebhookDescricao}>
+                      Avisa o site automaticamente quando chega uma mensagem nesse número. Configure de novo se o domínio
+                      do site mudar.
+                    </p>
+                    {webhookOk && <p className={styles.webhookOk}>Configurado: {webhookOk}</p>}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => configurarWebhook(unidadeConfig.id)}
+                    disabled={acao === 'configurando_webhook'}
+                  >
+                    {acao === 'configurando_webhook' ? 'Configurando...' : 'Configurar webhook'}
+                  </button>
+                </div>
               )}
             </div>
           </div>
