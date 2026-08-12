@@ -1,7 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Camera } from 'lucide-react';
 import AdminNav from '@/components/AdminNav';
-import AdminHeader from '@/components/AdminHeader';
 import AdminInstagramList from '@/components/AdminInstagramList';
 import { listarRascunhos } from '@/lib/instagram';
 import { existeImagemFundo } from '@/lib/instagramImagens';
@@ -27,7 +25,6 @@ export default async function AdminInstagramPage() {
     <div className={styles.shell}>
       <AdminNav />
       <div className={styles.main}>
-        <AdminHeader icon={Camera} title="Rascunhos do Instagram" />
         <div className={styles.content}>
           <AdminInstagramList rascunhosIniciais={rascunhos} imagemGeradaInicial={imagemGeradaInicial} />
         </div>

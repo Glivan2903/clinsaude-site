@@ -1,7 +1,5 @@
 import { notFound } from 'next/navigation';
-import { MessageCircle } from 'lucide-react';
 import AdminNav from '@/components/AdminNav';
-import AdminHeader from '@/components/AdminHeader';
 import AdminWhatsappPanel from '@/components/AdminWhatsappPanel';
 import { UNIDADES_INFO } from '@/lib/unidadesInfo';
 import { getStatus, getInstanciaUazapi } from '@/lib/uazapi';
@@ -42,7 +40,6 @@ export default async function AdminWhatsappPage() {
     <div className={styles.shell}>
       <AdminNav />
       <div className={styles.main}>
-        <AdminHeader icon={MessageCircle} title="Whatsapp" />
         <div className={wa.content}>
           <AdminWhatsappPanel unidadesIniciais={unidades} />
         </div>

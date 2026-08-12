@@ -1,7 +1,5 @@
 import { notFound } from 'next/navigation';
-import { CalendarDays } from 'lucide-react';
 import AdminNav from '@/components/AdminNav';
-import AdminHeader from '@/components/AdminHeader';
 import AdminCalendarioLista from '@/components/AdminCalendarioLista';
 import { listarProximasPostagens } from '@/lib/proximasPostagens';
 import { FEATURE_CALENDARIO } from '@/lib/featureFlags';
@@ -23,7 +21,6 @@ export default async function AdminCalendarioPage() {
     <div className={styles.shell}>
       <AdminNav />
       <div className={styles.main}>
-        <AdminHeader icon={CalendarDays} title="Próximas datas e postagens" />
         <div className={styles.content}>
           <AdminCalendarioLista proximasPostagens={proximasPostagens} />
         </div>

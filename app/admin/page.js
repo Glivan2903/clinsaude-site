@@ -1,6 +1,4 @@
-import { Users } from 'lucide-react';
 import AdminNav from '@/components/AdminNav';
-import AdminHeader from '@/components/AdminHeader';
 import AdminProfissionaisList from '@/components/AdminProfissionaisList';
 import { getProfissionaisUnificados } from '@/lib/profissionais';
 import { getStatusParaSlugs } from '@/lib/profissionaisStatus';
@@ -26,7 +24,6 @@ export default async function AdminPage() {
     <div className={styles.shell}>
       <AdminNav />
       <div className={styles.main}>
-        <AdminHeader icon={Users} title="Links de agendamento por profissional" />
         <div className={styles.content}>
           <AdminProfissionaisList
             profissionais={profissionais}
