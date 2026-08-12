@@ -166,9 +166,12 @@
 }
 
 .statusTabAtivo {
-  background: var(--surface);
-  color: var(--green-900);
-  box-shadow: var(--shadow-sm);
+  background: var(--green-700);
+  color: var(--surface);
+}
+
+.statusTabAtivo:hover {
+  color: var(--surface);
 }
 
 .statusTabCount {
