@@ -42,16 +42,22 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
   const [carregandoContatos, setCarregandoContatos] = useState(null);
   const [erroContatos, setErroContatos] = useState({});
   const [alterandoContato, setAlterandoContato] = useState(null); // `${unidadeId}:${numero}`
+  const [conversaAberta, setConversaAberta] = useState(null); // { unidadeId, numero } | null
+  const [historicoPorContato, setHistoricoPorContato] = useState({}); // `${unidadeId}:${numero}` -> mensagens
+  const [carregandoHistorico, setCarregandoHistorico] = useState(false);
+  const [erroHistorico, setErroHistorico] = useState(null);
   const timers = useRef({}); // { [unidadeId]: { intervalId, timeoutId } }
 
   useEffect(() => {
     if (!unidadeModal) return;
     function aoTeclar(e) {
-      if (e.key === 'Escape') setUnidadeModal(null);
+      if (e.key !== 'Escape') return;
+      if (conversaAberta) setConversaAberta(null);
+      else setUnidadeModal(null);
     }
     document.addEventListener('keydown', aoTeclar);
     return () => document.removeEventListener('keydown', aoTeclar);
-  }, [unidadeModal]);
+  }, [unidadeModal, conversaAberta]);
 
   useEffect(() => {
     return () => {
@@ -182,6 +188,28 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
     }
   }
 
+  async function abrirConversa(unidadeId, numero) {
+    setConversaAberta({ unidadeId, numero });
+    const chave = `${unidadeId}:${numero}`;
+    if (historicoPorContato[chave]) return;
+
+    setCarregandoHistorico(true);
+    setErroHistorico(null);
+    try {
+      const res = await fetch(`/api/admin/whatsapp/${unidadeId}/contatos/${encodeURIComponent(numero)}/historico`);
+      const data = await res.json();
+      if (data.success) {
+        setHistoricoPorContato((prev) => ({ ...prev, [chave]: data.historico }));
+      } else {
+        setErroHistorico(data.error || 'Não foi possível carregar o histórico.');
+      }
+    } catch {
+      setErroHistorico('Falha ao carregar o histórico. Tente novamente.');
+    } finally {
+      setCarregandoHistorico(false);
+    }
+  }
+
   function abrirModal(unidadeId) {
     setUnidadeModal(unidadeId);
     setModoConexao('qrcode');
@@ -219,6 +247,12 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
   const mostrarPaircode = unidade && Boolean(unidade.paircode) && !unidade.conectado && !qrExpirado;
   const telefoneValido = telefonePareamento.replace(/\D/g, '').length >= 10;
   const contatos = unidade ? contatosPorUnidade[unidade.id] : null;
+
+  const contatoConversa =
+    conversaAberta && contatos ? contatos.find((c) => c.telefone === conversaAberta.numero) : null;
+  const historicoConversa = conversaAberta
+    ? historicoPorContato[`${conversaAberta.unidadeId}:${conversaAberta.numero}`]
+    : null;
 
   return (
     <>
@@ -389,7 +423,11 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                               {contatos.map((contato) => {
                                 const chave = `${unidade.id}:${contato.telefone}`;
                                 return (
-                                  <tr key={contato.telefone}>
+                                  <tr
+                                    key={contato.telefone}
+                                    className={styles.linhaClicavel}
+                                    onClick={() => abrirConversa(unidade.id, contato.telefone)}
+                                  >
                                     <td>
                                       <span className={styles.contatoNome}>{contato.nome || contato.telefone}</span>
                                       {contato.nome && <span className={styles.contatoNumero}>{contato.telefone}</span>}
@@ -401,7 +439,10 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                                       <button
                                         type="button"
                                         className={`${styles.toggleIa} ${contato.iaAtiva ? styles.toggleIaAtiva : ''}`}
-                                        onClick={() => alternarIa(unidade.id, contato.telefone, contato.iaAtiva)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          alternarIa(unidade.id, contato.telefone, contato.iaAtiva);
+                                        }}
                                         disabled={alterandoContato === chave}
                                         aria-pressed={contato.iaAtiva}
                                       >
@@ -418,6 +459,46 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {conversaAberta && (
+        <div className={styles.overlay} role="presentation" onClick={() => setConversaAberta(null)}>
+          <div
+            className={styles.chatModal}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Conversa com ${contatoConversa?.nome || conversaAberta.numero}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <div>
+                <span className={styles.unidadeNome}>{contatoConversa?.nome || conversaAberta.numero}</span>
+                {contatoConversa?.nome && <span className={styles.status}>{conversaAberta.numero}</span>}
+              </div>
+              <button type="button" className={styles.fechar} onClick={() => setConversaAberta(null)} aria-label="Fechar">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className={styles.chatBody}>
+              {carregandoHistorico && <p className={styles.aviso}>Carregando conversa...</p>}
+              {erroHistorico && <p className={styles.erro}>{erroHistorico}</p>}
+              {!carregandoHistorico && !erroHistorico && (!historicoConversa || historicoConversa.length === 0) && (
+                <p className={styles.aviso}>Nenhuma mensagem registrada nesta conversa.</p>
+              )}
+              {!carregandoHistorico &&
+                !erroHistorico &&
+                historicoConversa?.map((msg, i) => (
+                  <div
+                    key={i}
+                    className={`${styles.bolha} ${msg.role === 'user' ? styles.bolhaPaciente : styles.bolhaSofia}`}
+                  >
+                    {msg.content}
+                  </div>
+                ))}
             </div>
           </div>
         </div>

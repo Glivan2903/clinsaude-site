@@ -253,6 +253,57 @@
   border-bottom: none;
 }
 
+.linhaClicavel {
+  cursor: pointer;
+}
+
+.linhaClicavel:hover {
+  background: var(--paper);
+}
+
+.chatModal {
+  width: 100%;
+  max-width: 480px;
+  height: min(640px, 85vh);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.chatBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.bolha {
+  max-width: 80%;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.bolhaPaciente {
+  align-self: flex-start;
+  background: var(--paper);
+  color: var(--ink);
+  border-bottom-left-radius: 0.2rem;
+}
+
+.bolhaSofia {
+  align-self: flex-end;
+  background: var(--green-700);
+  color: var(--surface);
+  border-bottom-right-radius: 0.2rem;
+}
+
 .contatoNome {
   display: block;
   font-weight: 600;
