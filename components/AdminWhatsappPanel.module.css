@@ -80,8 +80,9 @@
 }
 
 .sidebarTitulo {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 600;
   color: var(--green-900);
 }
 
@@ -379,7 +380,9 @@
 }
 
 .chatNome {
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 1.02rem;
+  font-weight: 600;
   color: var(--green-900);
   overflow: hidden;
   text-overflow: ellipsis;

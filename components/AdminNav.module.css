@@ -15,24 +15,24 @@
   border-bottom: 1px solid var(--line);
 }
 
-.marcaNome {
+.marcaLogo {
   display: block;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--green-900);
+  height: 28px;
+  width: auto;
+  object-fit: contain;
 }
 
 .marcaSub {
   display: block;
   font-size: 0.75rem;
   color: var(--ink-soft);
-  margin-top: 0.15rem;
+  margin-top: 0.5rem;
 }
 
 .itens {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.2rem;
   padding: 1rem 0.75rem;
 }
 
@@ -41,21 +41,23 @@
   align-items: center;
   gap: 0.7rem;
   padding: 0.65rem 0.75rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--ink-soft);
-  transition: background-color 150ms ease, color 150ms ease;
+  border-left: 3px solid transparent;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 
 .item:hover {
-  background: var(--paper);
+  background: var(--primary-pale);
   color: var(--green-700);
 }
 
 .itemAtivo {
   background: var(--green-700);
   color: var(--surface);
+  border-left-color: var(--green-900);
 }
 
 .itemAtivo:hover {
@@ -88,5 +90,10 @@
 
   .item {
     padding: 0.6rem;
+    border-left: none;
+  }
+
+  .itemAtivo {
+    border-left: none;
   }
 }

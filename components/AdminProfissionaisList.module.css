@@ -9,10 +9,16 @@
   flex-direction: column;
   gap: 0.75rem;
   background: var(--surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
   padding: 0.85rem 1.1rem;
   box-shadow: var(--shadow-sm);
+  transition: box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.row:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .rowTop {
@@ -31,7 +37,7 @@
 .nome {
   font-size: 0.92rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--ink);
 }
 
 .unidadeTag {
@@ -39,7 +45,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  color: var(--text-muted);
+  color: var(--ink-soft);
 }
 
 .especialidadesList {
@@ -52,7 +58,7 @@
 .especialidadeTag {
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--green-700);
   background: var(--primary-pale);
   border-radius: var(--radius-sm);
   padding: 0.15rem 0.5rem;
@@ -60,7 +66,7 @@
 
 .slug {
   font-size: 0.72rem;
-  color: var(--text-muted);
+  color: var(--ink-soft);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -77,9 +83,9 @@
   flex-shrink: 0;
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--green-700);
   background: transparent;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
   padding: 0.4rem 0.75rem;
   white-space: nowrap;
@@ -88,7 +94,7 @@
 
 .copyButton:hover {
   background: var(--surface-hover, rgba(0, 0, 0, 0.04));
-  border-color: var(--primary-color);
+  border-color: var(--green-700);
 }
 
 .toggle {
@@ -96,7 +102,7 @@
   width: 44px;
   height: 24px;
   border-radius: var(--radius-full);
-  background: var(--border-color);
+  background: var(--line);
   position: relative;
   transition: background 0.2s ease;
 }
@@ -106,7 +112,7 @@
 }
 
 .toggleAtivo {
-  background: var(--primary-color);
+  background: var(--green-700);
 }
 
 .toggleKnob {
@@ -126,7 +132,7 @@
 }
 
 .aliasRow {
-  border-top: 1px dashed var(--border-color);
+  border-top: 1px dashed var(--line);
   padding-top: 0.65rem;
 }
 
@@ -136,7 +142,7 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--ink-soft);
   margin-bottom: 0.4rem;
 }
 
@@ -149,7 +155,7 @@
 
 .aliasPrefix {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--ink-soft);
   white-space: nowrap;
 }
 
@@ -158,15 +164,15 @@
   min-width: 140px;
   font-size: 0.85rem;
   padding: 0.45rem 0.65rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--paper);
+  color: var(--ink);
 }
 
 .aliasInput:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: var(--green-700);
 }
 
 .aliasSaveButton {
@@ -174,7 +180,7 @@
   font-size: 0.78rem;
   font-weight: 600;
   color: white;
-  background: var(--primary-color);
+  background: var(--green-700);
   border: none;
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.85rem;
@@ -182,7 +188,7 @@
 }
 
 .aliasSaveButton:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: var(--green-600);
 }
 
 .aliasSaveButton:disabled {
@@ -193,7 +199,7 @@
 .aliasError {
   margin-top: 0.4rem;
   font-size: 0.75rem;
-  color: var(--error);
+  color: #b3261e;
 }
 
 /* Mobile: com várias tags de especialidade, o nome+tags e as ações (copiar

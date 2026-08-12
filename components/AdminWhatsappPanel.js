@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { X, Settings, Search, Send, MessageCircleMore } from 'lucide-react';
+import { gsap, useGSAP } from '../lib/gsap';
 import styles from './AdminWhatsappPanel.module.css';
 import { FEATURE_WHATSAPP_INBOX } from '../lib/featureFlags';
 
@@ -73,6 +74,18 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
   const [enviando, setEnviando] = useState(false);
   const [erroEnvio, setErroEnvio] = useState(null);
   const mensagensFimRef = useRef(null);
+  const listaConversasRef = useRef(null);
+
+  useGSAP(
+    () => {
+      if (!FEATURE_WHATSAPP_INBOX || carregandoConversas) return;
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.from(`.${styles.itemConversa}`, { opacity: 0, y: 10, stagger: 0.04, duration: 0.4 });
+      });
+    },
+    { scope: listaConversasRef, dependencies: [carregandoConversas] }
+  );
 
   // Escape fecha o modal de configuração da unidade, quando aberto.
   useEffect(() => {
@@ -454,7 +467,7 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
             </div>
           </div>
 
-          <div className={styles.listaConversas}>
+          <div ref={listaConversasRef} className={styles.listaConversas}>
             {carregandoConversas && <p className={styles.aviso}>Carregando conversas...</p>}
             {erroConversas && <p className={styles.erro}>{erroConversas}</p>}
             {!carregandoConversas && !erroConversas && conversasFiltradas.length === 0 && (

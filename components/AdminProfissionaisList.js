@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { gsap, useGSAP } from '../lib/gsap';
 import styles from './AdminProfissionaisList.module.css';
 import { UNIDADES_INFO } from '../lib/unidadesInfo';
 
@@ -9,6 +10,7 @@ function nomeUnidade(unidadeId) {
 }
 
 export default function AdminProfissionaisList({ profissionais, statusInicial, aliasInicial }) {
+  const rootRef = useRef(null);
   const [status, setStatus] = useState(statusInicial);
   const [alias, setAlias] = useState(aliasInicial || {});
   const [aliasInput, setAliasInput] = useState(() =>
@@ -18,6 +20,16 @@ export default function AdminProfissionaisList({ profissionais, statusInicial, a
   const [savingAlias, setSavingAlias] = useState(null);
   const [loadingSlug, setLoadingSlug] = useState(null);
   const [copiedSlug, setCopiedSlug] = useState(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.from(`.${styles.row}`, { opacity: 0, y: 14, stagger: 0.04, duration: 0.5 });
+      });
+    },
+    { scope: rootRef }
+  );
 
   async function toggle(slug) {
     setLoadingSlug(slug);
@@ -63,7 +75,7 @@ export default function AdminProfissionaisList({ profissionais, statusInicial, a
   }
 
   return (
-    <div className={styles.list}>
+    <div ref={rootRef} className={styles.list}>
       {profissionais.map((prof) => {
         const ativo = Boolean(status[prof.slug]);
         const aliasAtual = alias[prof.slug];

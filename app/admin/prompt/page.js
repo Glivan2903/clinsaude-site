@@ -1,6 +1,7 @@
+import { Bot } from 'lucide-react';
 import AdminNav from '@/components/AdminNav';
+import AdminHeader from '@/components/AdminHeader';
 import AdminPromptForm from '@/components/AdminPromptForm';
-import AdminLogoutButton from '@/components/AdminLogoutButton';
 import { getPromptConfig, TAMANHO_MAX_CAMPO } from '@/lib/promptConfig';
 import { buildPromptHeader, DEFAULT_PROMPT_BODY, SECURITY_RULES_TEXT } from '@/lib/chatSystemPrompt';
 import styles from '../page.module.css';
@@ -20,10 +21,7 @@ export default async function AdminPromptPage() {
     <div className={styles.shell}>
       <AdminNav />
       <div className={styles.main}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>IA da Sofia</h1>
-          <AdminLogoutButton />
-        </div>
+        <AdminHeader icon={Bot} title="IA da Sofia" />
         <div className={styles.content}>
           <AdminPromptForm
             corpoInicial={corpoAtual}

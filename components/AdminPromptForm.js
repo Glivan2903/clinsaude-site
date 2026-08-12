@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { gsap, useGSAP } from '../lib/gsap';
 import styles from './AdminPromptForm.module.css';
 
 export default function AdminPromptForm({
@@ -12,12 +13,23 @@ export default function AdminPromptForm({
   cabecalhoExemplo,
   regrasSeguranca,
 }) {
+  const rootRef = useRef(null);
   const [corpo, setCorpo] = useState(corpoInicial);
   const [salvoComo, setSalvoComo] = useState(corpoInicial);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState(null);
   const [atualizadoEm, setAtualizadoEm] = useState(atualizadoEmInicial);
   const [personalizado, setPersonalizado] = useState(personalizadoInicial);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.from(rootRef.current.children, { opacity: 0, y: 14, stagger: 0.06, duration: 0.5 });
+      });
+    },
+    { scope: rootRef }
+  );
 
   const sujo = corpo !== salvoComo;
 
@@ -54,7 +66,7 @@ export default function AdminPromptForm({
   }
 
   return (
-    <div className={styles.wrapper}>
+    <div ref={rootRef} className={styles.wrapper}>
       <p className={styles.intro}>
         Este é o prompt <strong>que está rodando de verdade</strong> na Sofia agora (site e Whatsapp) — não é um
         exemplo. Salvar aqui grava no banco de dados e entra em uso já na próxima mensagem que qualquer paciente

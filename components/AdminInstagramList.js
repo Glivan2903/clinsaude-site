@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import InstagramPostPreview from './InstagramPostPreview';
 import { TIPOS_INSTITUCIONAIS } from '../lib/tiposInstitucionais';
+import { gsap, useGSAP } from '../lib/gsap';
 import styles from './AdminInstagramList.module.css';
 
 function formatarData(timestamp) {
@@ -16,6 +17,7 @@ function formatarData(timestamp) {
 }
 
 export default function AdminInstagramList({ rascunhosIniciais, imagemGeradaInicial }) {
+  const rootRef = useRef(null);
   const [rascunhos, setRascunhos] = useState(rascunhosIniciais);
   const [legendaInput, setLegendaInput] = useState(() =>
     Object.fromEntries(rascunhosIniciais.map((r) => [r.slug, r.legenda]))
@@ -34,6 +36,16 @@ export default function AdminInstagramList({ rascunhosIniciais, imagemGeradaInic
   const [tipoInstitucional, setTipoInstitucional] = useState('aleatorio');
   const [gerandoInstitucional, setGerandoInstitucional] = useState(false);
   const [erroInstitucional, setErroInstitucional] = useState(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.from(`.${styles.card}`, { opacity: 0, y: 16, stagger: 0.06, duration: 0.5 });
+      });
+    },
+    { scope: rootRef }
+  );
 
   async function gerarInstitucional() {
     setGerandoInstitucional(true);
@@ -127,7 +139,7 @@ export default function AdminInstagramList({ rascunhosIniciais, imagemGeradaInic
   }
 
   return (
-    <div>
+    <div ref={rootRef}>
       <div className={styles.institucionalBox}>
         <div>
           <span className={styles.institucionalTitulo}>Sem data comemorativa hoje?</span>

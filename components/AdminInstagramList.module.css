@@ -14,7 +14,9 @@
 
 .institucionalTitulo {
   display: block;
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
   color: var(--green-900);
 }
 
@@ -38,6 +40,12 @@
   background: var(--surface);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
+  transition: box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.card:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .cardHeader {
@@ -50,7 +58,9 @@
 
 .tema {
   display: block;
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
   color: var(--green-900);
 }
 

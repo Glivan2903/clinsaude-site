@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
+import { MessageCircle } from 'lucide-react';
 import AdminNav from '@/components/AdminNav';
+import AdminHeader from '@/components/AdminHeader';
 import AdminWhatsappPanel from '@/components/AdminWhatsappPanel';
-import AdminLogoutButton from '@/components/AdminLogoutButton';
 import { UNIDADES_INFO } from '@/lib/unidadesInfo';
 import { getStatus, getInstanciaUazapi } from '@/lib/uazapi';
 import { FEATURE_WHATSAPP } from '@/lib/featureFlags';
@@ -41,10 +42,7 @@ export default async function AdminWhatsappPage() {
     <div className={styles.shell}>
       <AdminNav />
       <div className={styles.main}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Whatsapp</h1>
-          <AdminLogoutButton />
-        </div>
+        <AdminHeader icon={MessageCircle} title="Whatsapp" />
         <div className={wa.content}>
           <AdminWhatsappPanel unidadesIniciais={unidades} />
         </div>
