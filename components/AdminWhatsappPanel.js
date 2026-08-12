@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { X, Settings, Search, Send, MessageCircleMore } from 'lucide-react';
 import styles from './AdminWhatsappPanel.module.css';
+import { FEATURE_WHATSAPP_INBOX } from '../lib/featureFlags';
 
 const CORES_AVATAR = ['#2b7a3e', '#8a5a2b', '#2b5f7a', '#7a2b5f', '#5f7a2b', '#7a3e2b'];
 
@@ -110,8 +111,11 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
     }
   }
 
-  // Feed principal: carrega na entrada e mantém atualizado sozinho.
+  // Feed principal: carrega na entrada e mantém atualizado sozinho. Só faz
+  // sentido com o inbox ligado — com a flag off, a página só mostra a
+  // configuração de conexão das unidades.
   useEffect(() => {
+    if (!FEATURE_WHATSAPP_INBOX) return;
     carregarConversas();
     const intervalId = setInterval(() => carregarConversas({ silencioso: true }), CONVERSAS_POLL_MS);
     return () => clearInterval(intervalId);
@@ -355,6 +359,20 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
 
   return (
     <>
+      {!FEATURE_WHATSAPP_INBOX ? (
+        <div className={styles.unidadesSimples}>
+          {unidades.map((u) => (
+            <button key={u.id} type="button" className={styles.unidadeCard} onClick={() => abrirConfigModal(u.id)}>
+              <span className={styles.unidadeNome}>{u.nome}</span>
+              <span className={`${styles.status} ${u.conectado ? styles.statusAtivo : ''}`}>
+                {estadoLabel(u)}
+                {u.conectado && u.numero ? ` · ${u.numero}` : ''}
+              </span>
+              <span className={styles.unidadeCardAcao}>Gerenciar →</span>
+            </button>
+          ))}
+        </div>
+      ) : (
       <div className={styles.inbox}>
         <aside className={styles.sidebar}>
           <div className={styles.sidebarTopo}>
@@ -555,6 +573,7 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
           )}
         </section>
       </div>
+      )}
 
       {unidadeConfig && (
         <div className={styles.overlay} role="presentation" onClick={() => setUnidadeConfigModal(null)}>

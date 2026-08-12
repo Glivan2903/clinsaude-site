@@ -19,6 +19,47 @@
   }
 }
 
+/* --- Visão simplificada (NEXT_PUBLIC_FEATURE_WHATSAPP_INBOX=false):
+   só a configuração de conexão de cada unidade, sem o inbox de conversas. --- */
+
+.unidadesSimples {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-content: start;
+  align-self: flex-start;
+  width: 100%;
+  gap: 1.25rem;
+}
+
+.unidadeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.unidadeCard:hover,
+.unidadeCard:focus-visible {
+  border-color: var(--green-700);
+}
+
+.unidadeCardAcao {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--green-700);
+}
+
 /* --- Sidebar --- */
 
 .sidebar {
