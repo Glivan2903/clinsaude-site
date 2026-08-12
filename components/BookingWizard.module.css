@@ -682,6 +682,15 @@
   flex: 1;
 }
 
+.optionUnidade {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
 /* Como optionDesc, mas sem truncar — para textos que não cabem numa linha só
    (nomes de convênio/procedimento), em vez de cortar no meio da palavra.
    min-width:0 é necessário porque um item flex não encolhe abaixo do

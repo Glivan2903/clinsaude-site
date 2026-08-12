@@ -1,6 +1,12 @@
 // Este serviço faz chamadas para a nossa API Route (Proxy), que por sua vez chama o backend ClinVida.
+// Toda função recebe a unidade (matriz/filial) como primeiro argumento — cada
+// unidade tem seu próprio backend/banco, sem nenhum dado compartilhado com a outra.
 
-const BASE_URL = '/api/agendamento';
+import { UNIDADES_INFO } from '../lib/unidadesInfo';
+
+function baseUrl(unidadeId) {
+  return `/api/agendamento/${unidadeId}`;
+}
 
 async function fetchAndUnwrap(url, options = {}) {
   const res = await fetch(url, options);
@@ -19,16 +25,32 @@ async function fetchAndUnwrap(url, options = {}) {
   return json;
 }
 
-export async function getCentros() {
-  const data = await fetchAndUnwrap(`${BASE_URL}/centros`);
+// Chama fn(unidadeId, ...args) em todas as unidades conhecidas, em
+// paralelo. Uma unidade fora do ar (ou ainda sem API_BASE_URL configurada)
+// nunca derruba as outras — só fica de fora do resultado.
+export async function fanOutUnidades(fn, ...args) {
+  const resultados = await Promise.allSettled(UNIDADES_INFO.map(({ id }) => fn(id, ...args)));
+  return UNIDADES_INFO.reduce((acc, { id }, idx) => {
+    const r = resultados[idx];
+    if (r.status === 'fulfilled') {
+      acc.push({ unidadeId: id, dados: r.value });
+    } else {
+      console.warn(`Unidade "${id}" não respondeu:`, r.reason?.message || r.reason);
+    }
+    return acc;
+  }, []);
+}
+
+export async function getCentros(unidadeId) {
+  const data = await fetchAndUnwrap(`${baseUrl(unidadeId)}/centros`);
   return (data || []).map(item => ({
     CEN_CODIGO: item.cenCodigo,
     CEN_DESCRICAO: item.cenDescricao
   }));
 }
 
-export async function getProfissionais(cenCodigo) {
-  const data = await fetchAndUnwrap(`${BASE_URL}/profissionais/${cenCodigo}`);
+export async function getProfissionais(unidadeId, cenCodigo) {
+  const data = await fetchAndUnwrap(`${baseUrl(unidadeId)}/profissionais/${cenCodigo}`);
   return (data || []).map(item => ({
     PROF_CODIGO: item.profCodigo,
     PROF_NOME: item.profNome,
@@ -38,8 +60,8 @@ export async function getProfissionais(cenCodigo) {
   }));
 }
 
-export async function getOpcoes(cen, prof, cons, uf) {
-  const data = await fetchAndUnwrap(`${BASE_URL}/opcoes/${cen}/${prof}/${cons}/${uf}`);
+export async function getOpcoes(unidadeId, cen, prof, cons, uf) {
+  const data = await fetchAndUnwrap(`${baseUrl(unidadeId)}/opcoes/${cen}/${prof}/${cons}/${uf}`);
   return (data || []).map(item => ({
     TIPO: item.tipo,
     CODIGO: item.codigo,
@@ -47,16 +69,16 @@ export async function getOpcoes(cen, prof, cons, uf) {
   }));
 }
 
-export async function getDias(cen, prof, cons, uf) {
-  const data = await fetchAndUnwrap(`${BASE_URL}/dias/${cen}/${prof}/${cons}/${uf}`);
+export async function getDias(unidadeId, cen, prof, cons, uf) {
+  const data = await fetchAndUnwrap(`${baseUrl(unidadeId)}/dias/${cen}/${prof}/${cons}/${uf}`);
   return (data || []).map(item => ({
     HAG_DIA: item.hagDia,
     ORDEMDIA: item.ordemdia
   }));
 }
 
-export async function getHorarios(cen, prof, cons, uf, dia) {
-  const data = await fetchAndUnwrap(`${BASE_URL}/horarios/${cen}/${prof}/${cons}/${uf}/${dia}`);
+export async function getHorarios(unidadeId, cen, prof, cons, uf, dia) {
+  const data = await fetchAndUnwrap(`${baseUrl(unidadeId)}/horarios/${cen}/${prof}/${cons}/${uf}/${dia}`);
   return (data || []).map(item => ({
     HDI_CODIGO: item.hdiCodigo,
     AGD_CODIGO: item.agdCodigo,
@@ -66,8 +88,8 @@ export async function getHorarios(cen, prof, cons, uf, dia) {
   }));
 }
 
-export async function getAgendasLivres(dia, agd, hdi, semanas = 4) {
-  const data = await fetchAndUnwrap(`${BASE_URL}/agendaslivres/${dia}/${agd}/${hdi}/${semanas}`);
+export async function getAgendasLivres(unidadeId, dia, agd, hdi, semanas = 4) {
+  const data = await fetchAndUnwrap(`${baseUrl(unidadeId)}/agendaslivres/${dia}/${agd}/${hdi}/${semanas}`);
   return (data || []).map(item => ({
     Data: item.data,
     Dia: item.dia,
@@ -77,8 +99,8 @@ export async function getAgendasLivres(dia, agd, hdi, semanas = 4) {
   }));
 }
 
-export async function agendar(dadosAgendamento) {
-  const data = await fetchAndUnwrap(`${BASE_URL}/agendar`, {
+export async function agendar(unidadeId, dadosAgendamento) {
+  const data = await fetchAndUnwrap(`${baseUrl(unidadeId)}/agendar`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -92,16 +114,16 @@ export async function agendar(dadosAgendamento) {
   return data;
 }
 
-export async function getPaciente(telefone) {
-  return fetchAndUnwrap(`${BASE_URL}/paciente/${telefone}`);
+export async function getPaciente(unidadeId, telefone) {
+  return fetchAndUnwrap(`${baseUrl(unidadeId)}/paciente/${telefone}`);
 }
 
-export async function getHistorico(telefone) {
-  return fetchAndUnwrap(`${BASE_URL}/historico/${telefone}`);
+export async function getHistorico(unidadeId, telefone) {
+  return fetchAndUnwrap(`${baseUrl(unidadeId)}/historico/${telefone}`);
 }
 
-export async function cancelarAgendamento(dadosCancelamento) {
-  const data = await fetchAndUnwrap(`${BASE_URL}/cancelar`, {
+export async function cancelarAgendamento(unidadeId, dadosCancelamento) {
+  const data = await fetchAndUnwrap(`${baseUrl(unidadeId)}/cancelar`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -114,8 +136,8 @@ export async function cancelarAgendamento(dadosCancelamento) {
   return data;
 }
 
-export async function reagendarAgendamento(dadosReagendamento) {
-  const data = await fetchAndUnwrap(`${BASE_URL}/reagendar`, {
+export async function reagendarAgendamento(unidadeId, dadosReagendamento) {
+  const data = await fetchAndUnwrap(`${baseUrl(unidadeId)}/reagendar`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -127,4 +149,3 @@ export async function reagendarAgendamento(dadosReagendamento) {
   }
   return data;
 }
-

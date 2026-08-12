@@ -11,9 +11,15 @@ import {
   getDias,
   getHorarios,
   getAgendasLivres,
-  agendar
+  agendar,
+  fanOutUnidades
 } from '../services/api';
 import { Check, ChevronRight, ChevronDown, AlertCircle, Search, ArrowLeft, Calendar, User, Activity, Phone } from 'lucide-react';
+import { UNIDADES_INFO } from '../lib/unidadesInfo';
+
+function nomeUnidade(unidadeId) {
+  return UNIDADES_INFO.find((u) => u.id === unidadeId)?.nome || unidadeId;
+}
 
 export default function BookingWizard({ initialCentro = null, initialProfissional = null }) {
   const [step, setStep] = useState(initialProfissional ? 3 : 1);
@@ -93,13 +99,20 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
     { scope: successRef, dependencies: [success] }
   );
 
-  // 1. Fetch Centros on mount
+  // 1. Fetch Centros nas unidades conhecidas (fan-out único, ver
+  // fanOutUnidades) — cada centro sai tagueado com sua unidade de origem;
+  // se o paciente já chega com initialCentro (vindo da página de um
+  // profissional específico), nem precisa disso.
   useEffect(() => {
+    if (initialCentro) return;
     async function loadCentros() {
       setLoading(true);
       try {
-        const data = await getCentros();
-        setCentros(data || []);
+        const resultados = await fanOutUnidades(getCentros);
+        const data = resultados.flatMap(({ unidadeId, dados }) =>
+          (dados || []).map((c) => ({ ...c, unidade: unidadeId }))
+        );
+        setCentros(data);
       } catch (err) {
         setError('Falha ao carregar centros. Tente novamente mais tarde.');
       } finally {
@@ -107,7 +120,7 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
       }
     }
     loadCentros();
-  }, []);
+  }, [initialCentro]);
 
   // If arriving pre-selected from a professional's own page, preload their
   // profissionais list (for the "Voltar" step) and opcoes, skipping straight to step 3.
@@ -117,8 +130,9 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
       setLoading(true);
       try {
         const [profs, dataOpcoes] = await Promise.all([
-          getProfissionais(initialCentro.CEN_CODIGO),
+          getProfissionais(initialCentro.unidade, initialCentro.CEN_CODIGO),
           getOpcoes(
+            initialCentro.unidade,
             initialCentro.CEN_CODIGO,
             initialProfissional.PROF_CODIGO,
             initialProfissional.CONS_CODIGO,
@@ -149,7 +163,7 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
     setSelectedCentro(centro);
     setLoading(true);
     try {
-      const profs = await getProfissionais(centro.CEN_CODIGO);
+      const profs = await getProfissionais(centro.unidade, centro.CEN_CODIGO);
       setProfissionais(profs || []);
       setStep(2);
     } catch (err) {
@@ -163,7 +177,7 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
     setSelectedProfissional(prof);
     setLoading(true);
     try {
-      const dataOpcoes = await getOpcoes(selectedCentro.CEN_CODIGO, prof.PROF_CODIGO, prof.CONS_CODIGO, prof.PROF_ESTADO_CONS);
+      const dataOpcoes = await getOpcoes(selectedCentro.unidade, selectedCentro.CEN_CODIGO, prof.PROF_CODIGO, prof.CONS_CODIGO, prof.PROF_ESTADO_CONS);
       
       const convs = dataOpcoes.filter(o => o.TIPO === 'CONVENIO');
       const exames = dataOpcoes.filter(o => o.TIPO === 'EXAME');
@@ -186,15 +200,16 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
     setLoading(true);
     try {
       const prof = selectedProfissional;
-      const dias = await getDias(selectedCentro.CEN_CODIGO, prof.PROF_CODIGO, prof.CONS_CODIGO, prof.PROF_ESTADO_CONS);
-      
+      const unidade = selectedCentro.unidade;
+      const dias = await getDias(unidade, selectedCentro.CEN_CODIGO, prof.PROF_CODIGO, prof.CONS_CODIGO, prof.PROF_ESTADO_CONS);
+
       if (dias && dias.length > 0) {
         const dia = dias[0];
-        const horarios = await getHorarios(selectedCentro.CEN_CODIGO, prof.PROF_CODIGO, prof.CONS_CODIGO, prof.PROF_ESTADO_CONS, dia.HAG_DIA);
-        
+        const horarios = await getHorarios(unidade, selectedCentro.CEN_CODIGO, prof.PROF_CODIGO, prof.CONS_CODIGO, prof.PROF_ESTADO_CONS, dia.HAG_DIA);
+
         if (horarios && horarios.length > 0) {
           const hor = horarios[0];
-          const agendasLivres = await getAgendasLivres(dia.HAG_DIA, hor.AGD_CODIGO, hor.HDI_CODIGO, 4);
+          const agendasLivres = await getAgendasLivres(unidade, dia.HAG_DIA, hor.AGD_CODIGO, hor.HDI_CODIGO, 4);
           const agendasWithCodes = (agendasLivres || []).map(a => ({
             ...a,
             agd_codigo: hor.AGD_CODIGO,
@@ -238,7 +253,7 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
         exa_codigo: selectedExame.CODIGO
       };
       
-      const res = await agendar(payload);
+      const res = await agendar(selectedCentro.unidade, payload);
       if (res && res[0] && res[0].OK === 1) {
         setSuccess(true);
       } else {
@@ -261,10 +276,14 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
   };
 
   // Filtering lists
-  const filteredCentros = centros.filter(c => 
+  const filteredCentros = centros.filter(c =>
     c.CEN_DESCRICAO.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.CEN_CODIGO.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  // Só mostra o rótulo da unidade quando ela de fato diferencia alguma coisa
+  // (2+ unidades respondendo) — com só a Matriz configurada, não faz
+  // sentido poluir a tela com um rótulo que nunca muda.
+  const mostrarUnidade = new Set(centros.map((c) => c.unidade)).size > 1;
 
   const filteredProfissionais = profissionais.filter(p => 
     p.PROF_NOME.toLowerCase().includes(searchQuery.toLowerCase())
@@ -405,7 +424,11 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
                 className={styles.dropdownTrigger}
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
-                <span>{selectedCentro ? `${selectedCentro.CEN_CODIGO} - ${selectedCentro.CEN_DESCRICAO}` : 'Escolha uma especialidade ou exame...'}</span>
+                <span>
+                  {selectedCentro
+                    ? `${selectedCentro.CEN_CODIGO} - ${selectedCentro.CEN_DESCRICAO}${mostrarUnidade ? ` · ${nomeUnidade(selectedCentro.unidade)}` : ''}`
+                    : 'Escolha uma especialidade ou exame...'}
+                </span>
                 <ChevronDown size={20} className={styles.dropdownArrow} style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'none' }} />
               </div>
               
@@ -429,8 +452,8 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
                     </div>
                     <div className={styles.dropdownOptionsList}>
                       {filteredCentros.map((cen) => (
-                        <div 
-                          key={cen.CEN_CODIGO} 
+                        <div
+                          key={`${cen.unidade}-${cen.CEN_CODIGO}`}
                           className={styles.dropdownOption}
                           onClick={() => {
                             handleCentroSelect(cen);
@@ -440,6 +463,9 @@ export default function BookingWizard({ initialCentro = null, initialProfissiona
                         >
                           <span className={styles.optionCode}>{cen.CEN_CODIGO}</span>
                           <span className={styles.optionDesc} title={cen.CEN_DESCRICAO}>{cen.CEN_DESCRICAO}</span>
+                          {mostrarUnidade && (
+                            <span className={styles.optionUnidade}>{nomeUnidade(cen.unidade)}</span>
+                          )}
                         </div>
                       ))}
                       {filteredCentros.length === 0 && (

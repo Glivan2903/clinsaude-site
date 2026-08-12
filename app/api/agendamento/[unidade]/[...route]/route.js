@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { clinvidaRequest } from '../../../../lib/clinvida';
+import { clinvidaRequest } from '../../../../../lib/clinvida';
 
 export async function GET(request, { params }) {
-  const { route } = await params;
+  const { unidade, route } = await params;
   const path = route.join('/');
 
   try {
-    const data = await clinvidaRequest(path);
+    const data = await clinvidaRequest(unidade, path);
     return NextResponse.json(data);
   } catch (error) {
     console.error('API Proxy GET Error:', error);
@@ -15,12 +15,12 @@ export async function GET(request, { params }) {
 }
 
 export async function POST(request, { params }) {
-  const { route } = await params;
+  const { unidade, route } = await params;
   const path = route.join('/');
 
   try {
     const body = await request.json();
-    const data = await clinvidaRequest(path, { method: 'POST', body });
+    const data = await clinvidaRequest(unidade, path, { method: 'POST', body });
     return NextResponse.json(data);
   } catch (error) {
     console.error('API Proxy POST Error:', error);

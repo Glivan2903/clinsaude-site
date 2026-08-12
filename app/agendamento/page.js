@@ -1,6 +1,8 @@
+import { notFound } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import BookingWizard from "../../components/BookingWizard";
+import { FEATURE_AGENDAMENTO } from "../../lib/featureFlags";
 
 export const metadata = {
   title: "Agendar Consulta - Clínica ClinSaúde",
@@ -8,6 +10,8 @@ export const metadata = {
 };
 
 export default function Agendamento() {
+  if (!FEATURE_AGENDAMENTO) notFound();
+
   return (
     <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Header />

@@ -5,8 +5,13 @@ import Link from 'next/link';
 import { Search, ChevronRight } from 'lucide-react';
 import styles from './MedicosDirectory.module.css';
 import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
+import { UNIDADES_INFO } from '../lib/unidadesInfo';
 
-export default function MedicosDirectory({ profissionais }) {
+function nomeUnidade(unidadeId) {
+  return UNIDADES_INFO.find((u) => u.id === unidadeId)?.nome || unidadeId;
+}
+
+export default function MedicosDirectory({ profissionais, statusPorSlug = {} }) {
   const [searchQuery, setSearchQuery] = useState('');
   const rootRef = useRef(null);
 
@@ -37,6 +42,9 @@ export default function MedicosDirectory({ profissionais }) {
       p.nome.toLowerCase().includes(query) ||
       p.especialidades.some((e) => e.especialidade.toLowerCase().includes(query))
   );
+  // Só mostra a unidade quando ela de fato diferencia alguma coisa no
+  // diretório (2+ unidades configuradas) — com só a Matriz, seria ruído.
+  const mostrarUnidade = new Set(profissionais.map((p) => p.unidade)).size > 1;
 
   return (
     <div ref={rootRef}>
@@ -53,29 +61,40 @@ export default function MedicosDirectory({ profissionais }) {
       </div>
 
       <div className={styles.grid}>
-        {filtrados.map((prof) => (
-          <Link
-            key={prof.slug}
-            href={`/medicos/${prof.slug}`}
-            className={styles.card}
-            onMouseEnter={(e) => lift(e, true)}
-            onMouseLeave={(e) => lift(e, false)}
-          >
-            <div className={styles.avatar}>{(prof.apelido || prof.nome).charAt(0)}</div>
-            <div className={styles.info}>
-              <span className={styles.nome}>{prof.apelido || prof.nome}</span>
-              <span className={styles.especialidade}>
-                {prof.especialidades.map((e) => e.especialidade).join(' · ')}
-              </span>
-              {prof.consCodigo && (
-                <span className={styles.conselho}>
-                  {prof.consCodigo} {prof.profCodigo}/{prof.profEstadoCons}
+        {filtrados.map((prof) => {
+          const ativo = statusPorSlug[prof.slug] !== false;
+          return (
+            <Link
+              key={prof.slug}
+              href={`/medicos/${prof.slug}`}
+              className={`${styles.card} ${!ativo ? styles.cardInativo : ''}`}
+              onMouseEnter={(e) => lift(e, true)}
+              onMouseLeave={(e) => lift(e, false)}
+            >
+              <div className={styles.avatar}>{(prof.apelido || prof.nome).charAt(0)}</div>
+              <div className={styles.info}>
+                <span className={styles.nome}>{prof.apelido || prof.nome}</span>
+                <span className={styles.especialidade}>
+                  {prof.especialidades.map((e) => e.especialidade).join(' · ')}
                 </span>
-              )}
-            </div>
-            <ChevronRight className={styles.arrow} size={18} />
-          </Link>
-        ))}
+                {prof.consCodigo && (
+                  <span className={styles.conselho}>
+                    {prof.consCodigo} {prof.profCodigo}/{prof.profEstadoCons}
+                  </span>
+                )}
+                <div className={styles.tags}>
+                  {mostrarUnidade && (
+                    <span className={styles.unidade}>{nomeUnidade(prof.unidade)}</span>
+                  )}
+                  {!ativo && (
+                    <span className={styles.badgeIndisponivel}>Agenda indisponível</span>
+                  )}
+                </div>
+              </div>
+              <ChevronRight className={styles.arrow} size={18} />
+            </Link>
+          );
+        })}
       </div>
 
       {filtrados.length === 0 && (

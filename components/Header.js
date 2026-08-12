@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import styles from './Header.module.css';
 import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
+import { FEATURE_BLOG, FEATURE_PROFISSIONAIS, FEATURE_AGENDAMENTO } from '../lib/featureFlags';
 
 const NAV_LINKS = [
   { href: '/#sobre', label: 'Sobre Nós' },
   { href: '/#especialidades', label: 'Especialidades' },
-  { href: '/medicos', label: 'Profissionais' },
+  ...(FEATURE_PROFISSIONAIS ? [{ href: '/medicos', label: 'Profissionais' }] : []),
+  ...(FEATURE_BLOG ? [{ href: '/blog', label: 'Blog' }] : []),
   { href: '/#contato', label: 'Contato' },
 ];
 
@@ -94,9 +96,11 @@ export default function Header() {
           <Link href="/area-cliente" className={styles.navLink}>
             Área do Cliente
           </Link>
-          <Link href="/agendamento" className="btn-primary">
-            Agendar consulta
-          </Link>
+          {FEATURE_AGENDAMENTO && (
+            <Link href="/agendamento" className="btn-primary">
+              Agendar consulta
+            </Link>
+          )}
         </div>
 
         <button
@@ -128,14 +132,16 @@ export default function Header() {
           <Link href="/area-cliente" className={styles.mobileNavLink} onClick={close} tabIndex={isOpen ? 0 : -1}>
             Área do Cliente
           </Link>
-          <Link
-            href="/agendamento"
-            className={`btn-primary ${styles.mobileCta}`}
-            onClick={close}
-            tabIndex={isOpen ? 0 : -1}
-          >
-            Agendar consulta
-          </Link>
+          {FEATURE_AGENDAMENTO && (
+            <Link
+              href="/agendamento"
+              className={`btn-primary ${styles.mobileCta}`}
+              onClick={close}
+              tabIndex={isOpen ? 0 : -1}
+            >
+              Agendar consulta
+            </Link>
+          )}
         </nav>
       </div>
     </header>

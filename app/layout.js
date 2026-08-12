@@ -1,6 +1,5 @@
 import { Figtree, Fraunces } from "next/font/google";
 import "./globals.css";
-import ChatWidget from "../components/chat/ChatWidget";
 
 const figtree = Figtree({
   variable: "--font-sans",
@@ -29,7 +28,6 @@ export default function RootLayout({ children }) {
     <html lang="pt-BR" className={`${figtree.variable} ${fraunces.variable}`}>
       <body>
         {children}
-        <ChatWidget />
       </body>
     </html>
   );

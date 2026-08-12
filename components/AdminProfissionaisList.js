@@ -2,6 +2,11 @@
 
 import { useState } from 'react';
 import styles from './AdminProfissionaisList.module.css';
+import { UNIDADES_INFO } from '../lib/unidadesInfo';
+
+function nomeUnidade(unidadeId) {
+  return UNIDADES_INFO.find((u) => u.id === unidadeId)?.nome || unidadeId;
+}
 
 export default function AdminProfissionaisList({ profissionais, statusInicial, aliasInicial }) {
   const [status, setStatus] = useState(statusInicial);
@@ -67,7 +72,10 @@ export default function AdminProfissionaisList({ profissionais, statusInicial, a
           <div key={prof.slug} className={styles.row}>
             <div className={styles.rowTop}>
               <div className={styles.info}>
-                <span className={styles.nome}>{prof.apelido || prof.nome}</span>
+                <span className={styles.nome}>
+                  {prof.apelido || prof.nome}
+                  <span className={styles.unidadeTag}> · {nomeUnidade(prof.unidade)}</span>
+                </span>
                 <div className={styles.especialidadesList}>
                   {prof.especialidades.map((e) => (
                     <span key={e.cenCodigo} className={styles.especialidadeTag}>

@@ -1,3 +1,4 @@
+import AdminNav from '@/components/AdminNav';
 import AdminProfissionaisList from '@/components/AdminProfissionaisList';
 import AdminLogoutButton from '@/components/AdminLogoutButton';
 import { getProfissionaisUnificados } from '@/lib/profissionais';
@@ -21,17 +22,20 @@ export default async function AdminPage() {
   ]);
 
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Links de agendamento por profissional</h1>
-        <AdminLogoutButton />
-      </div>
-      <div className={styles.content}>
-        <AdminProfissionaisList
-          profissionais={profissionais}
-          statusInicial={statusInicial}
-          aliasInicial={aliasInicial}
-        />
+    <div className={styles.shell}>
+      <AdminNav />
+      <div className={styles.main}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Links de agendamento por profissional</h1>
+          <AdminLogoutButton />
+        </div>
+        <div className={styles.content}>
+          <AdminProfissionaisList
+            profissionais={profissionais}
+            statusInicial={statusInicial}
+            aliasInicial={aliasInicial}
+          />
+        </div>
       </div>
     </div>
   );

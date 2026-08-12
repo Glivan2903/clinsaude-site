@@ -6,17 +6,23 @@ import Footer from '../../components/Footer';
 import EcgLine from '../../components/EcgLine';
 import { gsap, useGSAP } from '../../lib/gsap';
 import styles from './area-cliente.module.css';
-import { 
-  getPaciente, 
-  getHistorico, 
-  cancelarAgendamento, 
-  getCentros, 
-  getProfissionais, 
-  getDias, 
-  getHorarios, 
-  getAgendasLivres, 
-  reagendarAgendamento 
+import {
+  getPaciente,
+  getHistorico,
+  cancelarAgendamento,
+  getCentros,
+  getProfissionais,
+  getDias,
+  getHorarios,
+  getAgendasLivres,
+  reagendarAgendamento,
+  fanOutUnidades
 } from '../../services/api';
+import { UNIDADES_INFO } from '../../lib/unidadesInfo';
+
+function nomeUnidade(unidadeId) {
+  return UNIDADES_INFO.find((u) => u.id === unidadeId)?.nome || unidadeId;
+}
 import {
   Calendar,
   Clock,
@@ -129,35 +135,44 @@ export default function AreaCliente() {
     setLoading(true);
     setError(null);
     try {
-      // Load history directly
-      const historyData = await getHistorico(cleanPhone);
-      
-      // Try to get patient details for name, but do not block if empty/error
+      // Busca histórico e cadastro nas duas unidades em paralelo — o
+      // paciente pode ter consultas em qualquer uma delas, e não deveria
+      // precisar saber (ou lembrar) em qual. Uma unidade fora do ar não
+      // impede a outra de responder (fanOutUnidades usa Promise.allSettled).
+      const [historicoPorUnidade, pacientePorUnidade] = await Promise.all([
+        fanOutUnidades(getHistorico, cleanPhone),
+        fanOutUnidades(getPaciente, cleanPhone),
+      ]);
+
+      const historyData = historicoPorUnidade.flatMap(({ unidadeId, dados }) =>
+        (dados || []).map((item) => ({ ...item, unidade: unidadeId }))
+      );
+
+      // Nome do paciente: usa o primeiro cadastro encontrado, na ordem
+      // Matriz → Filial — as duas bases não compartilham cadastro entre si.
       let patientName = '';
-      try {
-        const resPaciente = await getPaciente(cleanPhone);
-        if (resPaciente && resPaciente.length > 0) {
-          patientName = resPaciente[0].CLI_NOME;
+      for (const { dados } of pacientePorUnidade) {
+        if (dados && dados.length > 0 && dados[0].CLI_NOME) {
+          patientName = dados[0].CLI_NOME;
+          break;
         }
-      } catch (errPaciente) {
-        console.warn('Erro ao buscar nome do paciente:', errPaciente);
       }
-      
-      if ((!historyData || historyData.length === 0) && !patientName) {
+
+      if (historyData.length === 0 && !patientName) {
         setError('Nenhum agendamento ou cadastro encontrado para este telefone. Por favor, verifique o número.');
         setLoading(false);
         return;
       }
-      
+
       // Sort appointments by date desc
-      const sorted = (historyData || []).sort((a, b) => new Date(b.hmaData) - new Date(a.hmaData));
+      const sorted = historyData.sort((a, b) => new Date(b.hmaData) - new Date(a.hmaData));
       setAppointments(sorted);
-      
+
       setPatient({
         CLI_NOME: patientName || 'Paciente',
         CLI_CELULAR: cleanPhone
       });
-      
+
       localStorage.setItem('clinSaude_patientPhone', cleanPhone);
       setIsAuthenticated(true);
     } catch (err) {
@@ -181,9 +196,12 @@ export default function AreaCliente() {
     if (!cleanPhone) return;
     
     try {
-      const historyData = await getHistorico(cleanPhone);
+      const historicoPorUnidade = await fanOutUnidades(getHistorico, cleanPhone);
+      const historyData = historicoPorUnidade.flatMap(({ unidadeId, dados }) =>
+        (dados || []).map((item) => ({ ...item, unidade: unidadeId }))
+      );
       // Sort appointments by date desc
-      const sorted = (historyData || []).sort((a, b) => new Date(b.hmaData) - new Date(a.hmaData));
+      const sorted = historyData.sort((a, b) => new Date(b.hmaData) - new Date(a.hmaData));
       setAppointments(sorted);
     } catch (err) {
       console.error('Erro ao recarregar histórico:', err);
@@ -215,7 +233,7 @@ export default function AreaCliente() {
         data: dateParts
       };
       
-      const res = await cancelarAgendamento(payload);
+      const res = await cancelarAgendamento(item.unidade, payload);
       if (res && res[0] && res[0].OK === 1) {
         setDialog({
           show: true,
@@ -259,29 +277,32 @@ export default function AreaCliente() {
     setAgendas([]);
     
     try {
-      // Fetch centers to match the appointment's specialty
-      const allCentros = await getCentros();
-      setCentros(allCentros || []);
-      
+      // O reagendamento fica preso à mesma unidade da consulta original — é
+      // ali que ela existe, sem fan-out nas duas.
+      const unidade = item.unidade;
+      const allCentros = await getCentros(unidade);
+      setCentros((allCentros || []).map((c) => ({ ...c, unidade })));
+
       // Auto-match specialty
-      const matchedCentro = allCentros.find(c => 
+      const matchedCentro = (allCentros || []).find(c =>
         c.CEN_DESCRICAO.toLowerCase() === item.centro.toLowerCase()
       );
-      
+
       if (matchedCentro) {
-        setSelectedCentro(matchedCentro);
+        const centroComUnidade = { ...matchedCentro, unidade };
+        setSelectedCentro(centroComUnidade);
         // Load professionals for center
-        const profs = await getProfissionais(matchedCentro.CEN_CODIGO);
+        const profs = await getProfissionais(unidade, matchedCentro.CEN_CODIGO);
         setProfissionais(profs || []);
-        
+
         // Auto-match professional name
-        const matchedProf = profs.find(p => 
+        const matchedProf = profs.find(p =>
           p.PROF_NOME.toLowerCase() === item.profissional.toLowerCase()
         );
         if (matchedProf) {
           setSelectedProfissional(matchedProf);
           // Advance to date picking directly
-          await loadRescheduleDates(matchedCentro, matchedProf);
+          await loadRescheduleDates(centroComUnidade, matchedProf);
           setRescheduleStep(2);
         }
       }
@@ -295,15 +316,16 @@ export default function AreaCliente() {
   const loadRescheduleDates = async (centro, prof) => {
     setRescheduleLoading(true);
     try {
-      const dias = await getDias(centro.CEN_CODIGO, prof.PROF_CODIGO, prof.CONS_CODIGO, prof.PROF_ESTADO_CONS);
-      
+      const unidade = centro.unidade;
+      const dias = await getDias(unidade, centro.CEN_CODIGO, prof.PROF_CODIGO, prof.CONS_CODIGO, prof.PROF_ESTADO_CONS);
+
       if (dias && dias.length > 0) {
         const dia = dias[0];
-        const horarios = await getHorarios(centro.CEN_CODIGO, prof.PROF_CODIGO, prof.CONS_CODIGO, prof.PROF_ESTADO_CONS, dia.HAG_DIA);
-        
+        const horarios = await getHorarios(unidade, centro.CEN_CODIGO, prof.PROF_CODIGO, prof.CONS_CODIGO, prof.PROF_ESTADO_CONS, dia.HAG_DIA);
+
         if (horarios && horarios.length > 0) {
           const hor = horarios[0];
-          const agendasLivres = await getAgendasLivres(dia.HAG_DIA, hor.AGD_CODIGO, hor.HDI_CODIGO, 4);
+          const agendasLivres = await getAgendasLivres(unidade, dia.HAG_DIA, hor.AGD_CODIGO, hor.HDI_CODIGO, 4);
           const agendasWithCodes = (agendasLivres || []).map(a => ({
             ...a,
             agd_codigo: hor.AGD_CODIGO,
@@ -342,7 +364,7 @@ export default function AreaCliente() {
         exa_codigo: reschedulingItem.exaCodigo
       };
       
-      const res = await reagendarAgendamento(payload);
+      const res = await reagendarAgendamento(reschedulingItem.unidade, payload);
       if (res && res[0] && res[0].OK === 1) {
         setDialog({
           show: true,
@@ -394,6 +416,11 @@ export default function AreaCliente() {
     };
     return months[monthStr] || '';
   };
+
+  // Só mostra o rótulo da unidade quando ela de fato diferencia alguma coisa
+  // (2+ unidades aparecendo no histórico) — com só a Matriz configurada, não
+  // faz sentido poluir a tela com um rótulo que nunca muda.
+  const mostrarUnidade = new Set(appointments.map((a) => a.unidade)).size > 1;
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -474,6 +501,9 @@ export default function AreaCliente() {
                             <span className={`${styles.statusBadge} ${isUpcoming ? styles.badgeUpcoming : isCanceled ? styles.badgeCanceled : styles.badgeCompleted}`}>
                               {item.status}
                             </span>
+                            {mostrarUnidade && (
+                              <span className={styles.unidadeBadge}>{nomeUnidade(item.unidade)}</span>
+                            )}
                             <span className={styles.cardDateText}>
                               <Calendar size={14} style={{ marginRight: '0.25rem' }} />
                               {dateFormatted} ({item.hagDia})

@@ -6,6 +6,7 @@ import styles from './HeroSection.module.css';
 import EcgLine from './EcgLine';
 import { gsap, useGSAP } from '../lib/gsap';
 import { CLINIC_WHATSAPP_URL } from '../lib/config';
+import { FEATURE_AGENDAMENTO } from '../lib/featureFlags';
 
 export default function HeroSection() {
   const rootRef = useRef(null);
@@ -58,9 +59,11 @@ export default function HeroSection() {
           </p>
 
           <div className={styles.actions}>
-            <Link href="/agendamento" className="btn-primary">
-              Agendar consulta
-            </Link>
+            {FEATURE_AGENDAMENTO && (
+              <Link href="/agendamento" className="btn-primary">
+                Agendar consulta
+              </Link>
+            )}
             <a
               href={CLINIC_WHATSAPP_URL}
               target="_blank"

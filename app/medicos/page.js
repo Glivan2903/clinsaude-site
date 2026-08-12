@@ -1,11 +1,15 @@
+import { notFound } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import MedicosDirectory from "../../components/MedicosDirectory";
 import { getProfissionaisUnificados } from "../../lib/profissionais";
 import { getStatusParaSlugs } from "../../lib/profissionaisStatus";
+import { FEATURE_PROFISSIONAIS } from "../../lib/featureFlags";
 
-// O diretório só deve listar quem está com o link ativo (ver /admin), e esse
-// status pode mudar a qualquer momento — por isso a página não pode ser estática.
+// O diretório lista todos os profissionais, mas quem está com o link
+// desativado (ver /admin) recebe um indicativo visual e não é levado à
+// agenda ao clicar — esse status pode mudar a qualquer momento, por isso a
+// página não pode ser estática.
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
@@ -14,9 +18,10 @@ export const metadata = {
 };
 
 export default async function Medicos() {
-  const todos = await getProfissionaisUnificados();
-  const status = await getStatusParaSlugs(todos.map((p) => p.slug));
-  const profissionais = todos.filter((p) => status[p.slug]);
+  if (!FEATURE_PROFISSIONAIS) notFound();
+
+  const profissionais = await getProfissionaisUnificados();
+  const statusPorSlug = await getStatusParaSlugs(profissionais.map((p) => p.slug));
 
   return (
     <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -25,7 +30,7 @@ export default async function Medicos() {
       <section className="pageSection container">
         <span className="eyebrow" style={{ marginBottom: "0.75rem" }}>Nossa equipe</span>
         <h1 className="responsiveTitle" style={{ marginBottom: "1.5rem" }}>Profissionais da Clin+Saúde</h1>
-        <MedicosDirectory profissionais={profissionais} />
+        <MedicosDirectory profissionais={profissionais} statusPorSlug={statusPorSlug} />
       </section>
 
       <Footer />

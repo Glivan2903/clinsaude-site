@@ -1,0 +1,144 @@
+.wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rotulo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* Feed */
+.postCard {
+  width: 280px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.postHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  object-fit: contain;
+  background: #fff;
+}
+
+.postHeaderTexto {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.username {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.local {
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+}
+
+.postImagem {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+.postAcoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem 0.3rem;
+  color: var(--ink);
+}
+
+.postAcoesEsquerda {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.postLegenda {
+  font-size: 0.78rem;
+  color: var(--ink);
+  line-height: 1.45;
+  padding: 0.2rem 0.75rem 0.85rem;
+  white-space: pre-line;
+}
+
+/* Stories */
+.storiesFrame {
+  position: relative;
+  width: 155px;
+  height: 275px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--line);
+}
+
+.storiesBarra {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-full);
+  z-index: 2;
+}
+
+.storiesHeader {
+  position: absolute;
+  top: 18px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 2;
+}
+
+.storiesAvatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  object-fit: contain;
+  background: #fff;
+}
+
+.storiesUsername {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.storiesImagem {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

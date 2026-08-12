@@ -34,6 +34,14 @@
   color: var(--foreground);
 }
 
+.unidadeTag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
 .especialidadesList {
   display: flex;
   flex-wrap: wrap;

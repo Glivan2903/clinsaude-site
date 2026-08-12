@@ -109,6 +109,15 @@
   color: rgba(251, 250, 247, 0.6);
 }
 
+.contactPhone {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  color: rgba(251, 250, 247, 0.8);
+}
+
 .hoursText {
   font-size: 0.85rem;
   color: rgba(251, 250, 247, 0.7);

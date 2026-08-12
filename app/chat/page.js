@@ -1,6 +1,8 @@
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import ChatInterface from '../../components/chat/ChatInterface';
+import { FEATURE_CHAT } from '../../lib/featureFlags';
 import styles from './chat.module.css';
 
 export const metadata = {
@@ -9,6 +11,8 @@ export const metadata = {
 };
 
 export default function ChatPage() {
+  if (!FEATURE_CHAT) notFound();
+
   return (
     <main className={styles.page}>
       <header className={styles.topBar}>

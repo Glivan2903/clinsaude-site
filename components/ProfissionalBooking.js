@@ -7,6 +7,7 @@ import styles from './ProfissionalBooking.module.css';
 
 export default function ProfissionalBooking({
   nome,
+  unidade,
   consCodigo,
   profCodigo,
   profEstadoCons,
@@ -50,7 +51,7 @@ export default function ProfissionalBooking({
     );
   }
 
-  const initialCentro = { CEN_CODIGO: selecionado.cenCodigo, CEN_DESCRICAO: selecionado.especialidade };
+  const initialCentro = { CEN_CODIGO: selecionado.cenCodigo, CEN_DESCRICAO: selecionado.especialidade, unidade };
   const initialProfissional = {
     PROF_CODIGO: profCodigo,
     PROF_NOME: nome,
