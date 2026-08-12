@@ -36,6 +36,8 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
   const [webhookOkPorUnidade, setWebhookOkPorUnidade] = useState({});
   const [qrExpiradoPorUnidade, setQrExpiradoPorUnidade] = useState({});
   const [unidadeModal, setUnidadeModal] = useState(null);
+  const [modoConexao, setModoConexao] = useState('qrcode'); // 'qrcode' | 'paircode'
+  const [telefonePareamento, setTelefonePareamento] = useState('');
   const [contatosPorUnidade, setContatosPorUnidade] = useState({});
   const [carregandoContatos, setCarregandoContatos] = useState(null);
   const [erroContatos, setErroContatos] = useState({});
@@ -98,11 +100,15 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
     timers.current[unidadeId] = { intervalId, timeoutId };
   }
 
-  async function conectar(unidadeId) {
+  async function conectar(unidadeId, phone) {
     setAcaoEmAndamento((prev) => ({ ...prev, [unidadeId]: 'conectando' }));
     setErroPorUnidade((prev) => ({ ...prev, [unidadeId]: null }));
     try {
-      const res = await fetch(`/api/admin/whatsapp/${unidadeId}/connect`, { method: 'POST' });
+      const res = await fetch(`/api/admin/whatsapp/${unidadeId}/connect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone || undefined }),
+      });
       const data = await res.json();
       if (data.success) {
         atualizarUnidade(unidadeId, data);
@@ -178,6 +184,8 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
 
   function abrirModal(unidadeId) {
     setUnidadeModal(unidadeId);
+    setModoConexao('qrcode');
+    setTelefonePareamento('');
     if (!contatosPorUnidade[unidadeId]) carregarContatos(unidadeId);
   }
 
@@ -208,6 +216,8 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
   const webhookOk = unidade ? webhookOkPorUnidade[unidade.id] : null;
   const qrExpirado = unidade ? qrExpiradoPorUnidade[unidade.id] : false;
   const mostrarQr = unidade && Boolean(unidade.qrcode) && !unidade.conectado && !qrExpirado;
+  const mostrarPaircode = unidade && Boolean(unidade.paircode) && !unidade.conectado && !qrExpirado;
+  const telefoneValido = telefonePareamento.replace(/\D/g, '').length >= 10;
   const contatos = unidade ? contatosPorUnidade[unidade.id] : null;
 
   return (
@@ -255,7 +265,42 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                 </p>
               ) : (
                 <>
-                  {mostrarQr && (
+                  {!unidade.conectado && unidade.estado !== 'connecting' && (
+                    <div className={styles.modoTabs}>
+                      <button
+                        type="button"
+                        className={`${styles.modoTab} ${modoConexao === 'qrcode' ? styles.modoTabAtivo : ''}`}
+                        onClick={() => setModoConexao('qrcode')}
+                      >
+                        QR code
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.modoTab} ${modoConexao === 'paircode' ? styles.modoTabAtivo : ''}`}
+                        onClick={() => setModoConexao('paircode')}
+                      >
+                        Código de pareamento
+                      </button>
+                    </div>
+                  )}
+
+                  {!unidade.conectado && unidade.estado !== 'connecting' && modoConexao === 'paircode' && !mostrarPaircode && (
+                    <div className={styles.paircodeForm}>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        className={styles.telefoneInput}
+                        placeholder="Ex: 5579912345678 (DDI + DDD + número)"
+                        value={telefonePareamento}
+                        onChange={(e) => setTelefonePareamento(e.target.value)}
+                      />
+                      <p className={styles.qrAjuda}>
+                        Número do Whatsapp que vai ser conectado, com código do país e DDD, só dígitos.
+                      </p>
+                    </div>
+                  )}
+
+                  {mostrarQr && modoConexao === 'qrcode' && (
                     <div className={styles.qrBox}>
                       <img
                         src={unidade.qrcode}
@@ -266,8 +311,20 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                     </div>
                   )}
 
+                  {mostrarPaircode && (
+                    <div className={styles.qrBox}>
+                      <span className={styles.paircodeValor}>{unidade.paircode}</span>
+                      <p className={styles.qrAjuda}>
+                        No celular: Whatsapp → Aparelhos conectados → Conectar um aparelho → Conectar com número de
+                        telefone, e digite esse código.
+                      </p>
+                    </div>
+                  )}
+
                   {qrExpirado && !unidade.conectado && (
-                    <p className={styles.aviso}>QR code expirado. Gere um novo para conectar.</p>
+                    <p className={styles.aviso}>
+                      {modoConexao === 'paircode' ? 'Código de pareamento expirado.' : 'QR code expirado.'} Gere um novo para conectar.
+                    </p>
                   )}
 
                   {erro && <p className={styles.erro}>{erro}</p>}
@@ -278,10 +335,14 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                       <button
                         type="button"
                         className="btn-primary"
-                        onClick={() => conectar(unidade.id)}
-                        disabled={acao === 'conectando'}
+                        onClick={() => conectar(unidade.id, modoConexao === 'paircode' ? telefonePareamento.replace(/\D/g, '') : undefined)}
+                        disabled={acao === 'conectando' || (modoConexao === 'paircode' && !telefoneValido)}
                       >
-                        {acao === 'conectando' ? 'Gerando QR code...' : mostrarQr ? 'Gerar novo QR code' : 'Conectar / Gerar QR code'}
+                        {acao === 'conectando'
+                          ? modoConexao === 'paircode' ? 'Gerando código...' : 'Gerando QR code...'
+                          : modoConexao === 'paircode'
+                            ? mostrarPaircode ? 'Gerar novo código' : 'Gerar código de pareamento'
+                            : mostrarQr ? 'Gerar novo QR code' : 'Conectar / Gerar QR code'}
                       </button>
                     )}
                     {(unidade.conectado || unidade.estado === 'connecting') && (

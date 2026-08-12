@@ -11,8 +11,11 @@ export async function POST(request, { params }) {
     return NextResponse.json({ success: false, error: 'Unidade sem instância UAZAPI configurada.' }, { status: 400 });
   }
 
+  const body = await request.json().catch(() => ({}));
+  const phone = typeof body?.phone === 'string' ? body.phone.replace(/\D/g, '') : null;
+
   try {
-    const status = await connect(unidade);
+    const status = await connect(unidade, phone || undefined);
     return NextResponse.json({ success: true, ...status });
   } catch (error) {
     console.error(`Erro ao conectar a UAZAPI (${unidade}):`, error);

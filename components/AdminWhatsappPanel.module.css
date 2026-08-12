@@ -113,6 +113,59 @@
   font-weight: 600;
 }
 
+.modoTabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.modoTab {
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modoTabAtivo {
+  background: var(--green-700);
+  border-color: var(--green-700);
+  color: var(--surface);
+}
+
+.paircodeForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.telefoneInput {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-family: var(--font-sans);
+}
+
+.telefoneInput:focus-visible {
+  outline: 2px solid var(--green-700);
+  outline-offset: 1px;
+}
+
+.paircodeValor {
+  font-family: monospace;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--green-900);
+}
+
 .qrBox {
   display: flex;
   flex-direction: column;
