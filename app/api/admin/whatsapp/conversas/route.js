@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { UNIDADES_INFO } from '@/lib/unidadesInfo';
 import { getInstanciaUazapi } from '@/lib/uazapi';
 import { listarContatos } from '@/lib/whatsappConversations';
+import { FEATURE_WHATSAPP_INBOX } from '@/lib/featureFlags';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,10 @@ const JANELA_MS = 48 * 60 * 60 * 1000; // conversas das últimas 48h, Matriz+Fil
 // ordenado por atividade mais recente — é o que alimenta a barra lateral
 // estilo WhatsApp Web/Izing em /admin/whatsapp.
 export async function GET() {
+  if (!FEATURE_WHATSAPP_INBOX) {
+    return NextResponse.json({ success: false, error: 'Inbox desativado.' }, { status: 404 });
+  }
+
   try {
     const unidadesConfiguradas = UNIDADES_INFO.filter((u) => getInstanciaUazapi(u.id));
 

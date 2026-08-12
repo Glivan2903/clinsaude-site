@@ -320,6 +320,12 @@
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-sm);
   background: var(--line);
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.itemUnidadeAtiva {
+  background: var(--green-700);
+  color: var(--surface);
 }
 
 .pausadaBadge {

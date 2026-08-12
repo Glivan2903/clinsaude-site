@@ -487,7 +487,9 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                         {c.ultimaMensagem || '—'}
                       </span>
                       <span className={styles.itemBadges}>
-                        <span className={styles.itemUnidade}>{c.unidadeNome}</span>
+                        <span className={`${styles.itemUnidade} ${selecionada ? styles.itemUnidadeAtiva : ''}`}>
+                          {c.unidadeNome}
+                        </span>
                         {c.iaAtiva === false && <span className={styles.pausadaBadge}>IA pausada</span>}
                       </span>
                     </span>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { UNIDADES_INFO } from '@/lib/unidadesInfo';
 import { getHistorico } from '@/lib/whatsappConversations';
+import { FEATURE_WHATSAPP_INBOX } from '@/lib/featureFlags';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,10 @@ function paraExibicao(historico) {
 }
 
 export async function GET(request, { params }) {
+  if (!FEATURE_WHATSAPP_INBOX) {
+    return NextResponse.json({ success: false, error: 'Inbox desativado.' }, { status: 404 });
+  }
+
   const { unidade, numero } = await params;
   if (!UNIDADES_INFO.some((u) => u.id === unidade)) {
     return NextResponse.json({ success: false, error: 'Unidade inválida.' }, { status: 404 });

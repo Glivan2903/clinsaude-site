@@ -8,12 +8,17 @@ import {
   registrarEcoEnvio,
   pausarConversa,
 } from '@/lib/whatsappConversations';
+import { FEATURE_WHATSAPP_INBOX } from '@/lib/featureFlags';
 
 // Envio manual do admin direto pelo painel (fora do fluxo da Sofia). Ao
 // enviar, pausa a IA por 60min (mesma pausa automática de handoff — ver
 // pausarConversa em lib/whatsappConversations.js) e grava a mensagem no
 // histórico como "assistant", pra Sofia saber o que já foi dito se retomar.
 export async function POST(request, { params }) {
+  if (!FEATURE_WHATSAPP_INBOX) {
+    return NextResponse.json({ success: false, error: 'Inbox desativado.' }, { status: 404 });
+  }
+
   const { unidade, numero } = await params;
   if (!UNIDADES_INFO.some((u) => u.id === unidade)) {
     return NextResponse.json({ success: false, error: 'Unidade inválida.' }, { status: 404 });
