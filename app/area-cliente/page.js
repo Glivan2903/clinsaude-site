@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 
 export default function AreaCliente() {
+  const [unidadesFooter, setUnidadesFooter] = useState({ mostrarMatriz: true, mostrarFilial: true });
   const [phoneInput, setPhoneInput] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -120,6 +121,16 @@ export default function AreaCliente() {
     if (savedPhone) {
       setPhoneInput(savedPhone);
     }
+  }, []);
+
+  // Quais unidades têm backend configurado (pro rodapé não citar uma unidade
+  // desligada) — API_BASE_URL_* é server-only, por isso vem via API em vez
+  // de env direto aqui.
+  useEffect(() => {
+    fetch('/api/unidades')
+      .then((res) => res.json())
+      .then(setUnidadesFooter)
+      .catch(() => {});
   }, []);
 
   const handleLogin = async (e, directPhone = null) => {
@@ -701,7 +712,7 @@ export default function AreaCliente() {
         </div>
       )}
 
-      <Footer />
+      <Footer {...unidadesFooter} />
     </main>
   );
 }

@@ -5,6 +5,7 @@ import {
   CLINIC_WHATSAPP_URL_FILIAL,
 } from "../../lib/config";
 import { FEATURE_PROFISSIONAIS, FEATURE_AGENDAMENTO } from "../../lib/featureFlags";
+import { getUnidadesFooterProps } from "../../lib/unidades";
 import styles from "./page.module.css";
 
 export const metadata = {
@@ -12,25 +13,21 @@ export const metadata = {
   description: "Site, agendamento, profissionais e WhatsApp da Clin+Saúde em um só lugar.",
 };
 
-const links = [
-  { href: "/", label: "Conheça o site", icon: Globe },
-  ...(FEATURE_AGENDAMENTO ? [{ href: "/agendamento", label: "Agendar consulta", icon: CalendarDays }] : []),
-  ...(FEATURE_PROFISSIONAIS ? [{ href: "/medicos", label: "Nossos profissionais", icon: Users }] : []),
-  {
-    href: CLINIC_WHATSAPP_URL_MATRIZ,
-    label: "WhatsApp — Unidade Matriz",
-    icon: MessageCircle,
-    external: true,
-  },
-  {
-    href: CLINIC_WHATSAPP_URL_FILIAL,
-    label: "WhatsApp — Unidade Filial",
-    icon: MessageCircle,
-    external: true,
-  },
-];
-
 export default function BioPage() {
+  const { mostrarMatriz, mostrarFilial } = getUnidadesFooterProps();
+
+  const links = [
+    { href: "/", label: "Conheça o site", icon: Globe },
+    ...(FEATURE_AGENDAMENTO ? [{ href: "/agendamento", label: "Agendar consulta", icon: CalendarDays }] : []),
+    ...(FEATURE_PROFISSIONAIS ? [{ href: "/medicos", label: "Nossos profissionais", icon: Users }] : []),
+    ...(mostrarMatriz
+      ? [{ href: CLINIC_WHATSAPP_URL_MATRIZ, label: "WhatsApp — Unidade Matriz", icon: MessageCircle, external: true }]
+      : []),
+    ...(mostrarFilial
+      ? [{ href: CLINIC_WHATSAPP_URL_FILIAL, label: "WhatsApp — Unidade Filial", icon: MessageCircle, external: true }]
+      : []),
+  ];
+
   return (
     <main className={styles.page}>
       <div className={styles.column}>

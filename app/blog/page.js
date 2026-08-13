@@ -4,6 +4,7 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { listarPosts } from "../../lib/blog";
 import { FEATURE_BLOG } from "../../lib/featureFlags";
+import { getUnidadesFooterProps } from "../../lib/unidades";
 import styles from "./blog.module.css";
 
 // Novos posts são gerados automaticamente todo dia (ver app/api/cron/blog),
@@ -56,7 +57,7 @@ export default async function BlogPage() {
         )}
       </section>
 
-      <Footer />
+      <Footer {...getUnidadesFooterProps()} />
     </main>
   );
 }

@@ -3,6 +3,7 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import BookingWizard from "../../components/BookingWizard";
 import { FEATURE_AGENDAMENTO } from "../../lib/featureFlags";
+import { getUnidadesFooterProps } from "../../lib/unidades";
 
 export const metadata = {
   title: "Agendar Consulta - Clínica ClinSaúde",
@@ -26,7 +27,7 @@ export default function Agendamento() {
         </div>
       </section>
 
-      <Footer />
+      <Footer {...getUnidadesFooterProps()} />
     </main>
   );
 }

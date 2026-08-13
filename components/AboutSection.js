@@ -7,14 +7,19 @@ import AnimatedNumber from './AnimatedNumber';
 import EcgLine from './EcgLine';
 import { gsap, useGSAP } from '../lib/gsap';
 
-const FACTS = [
-  { value: 10, suffix: '+', label: 'Anos de atuação em Aracaju' },
-  { value: 2, suffix: '', label: 'Unidades no bairro Siqueira Campos' },
-  { value: 6, suffix: '+', label: 'Especialidades médicas e exames' },
-];
-
-export default function AboutSection() {
+export default function AboutSection({ mostrarMatriz = true, mostrarFilial = true } = {}) {
   const rootRef = useRef(null);
+  const totalUnidades = (mostrarMatriz ? 1 : 0) + (mostrarFilial ? 1 : 0);
+
+  const FACTS = [
+    { value: 10, suffix: '+', label: 'Anos de atuação em Aracaju' },
+    {
+      value: totalUnidades,
+      suffix: '',
+      label: totalUnidades === 1 ? 'Unidade no bairro Siqueira Campos' : 'Unidades no bairro Siqueira Campos',
+    },
+    { value: 6, suffix: '+', label: 'Especialidades médicas e exames' },
+  ];
 
   useGSAP(
     () => {
@@ -51,31 +56,35 @@ export default function AboutSection() {
           </p>
 
           <div className={styles.infoList}>
-            <div className={`${styles.infoItem} ${styles.reveal}`}>
-              <div className={styles.iconWrapper}>
-                <MapPin size={20} />
+            {mostrarMatriz && (
+              <div className={`${styles.infoItem} ${styles.reveal}`}>
+                <div className={styles.iconWrapper}>
+                  <MapPin size={20} />
+                </div>
+                <div>
+                  <h4 className={styles.infoTitle}>Unidade Matriz</h4>
+                  <p className={styles.infoText}>
+                    Rua Bahia, 998 — Siqueira Campos, Aracaju – SE<br />
+                    <strong>(79) 99989-6288</strong>
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className={styles.infoTitle}>Unidade Matriz</h4>
-                <p className={styles.infoText}>
-                  Rua Bahia, 998 — Siqueira Campos, Aracaju – SE<br />
-                  <strong>(79) 99989-6288</strong>
-                </p>
-              </div>
-            </div>
+            )}
 
-            <div className={`${styles.infoItem} ${styles.reveal}`}>
-              <div className={styles.iconWrapper}>
-                <MapPin size={20} />
+            {mostrarFilial && (
+              <div className={`${styles.infoItem} ${styles.reveal}`}>
+                <div className={styles.iconWrapper}>
+                  <MapPin size={20} />
+                </div>
+                <div>
+                  <h4 className={styles.infoTitle}>Unidade Filial</h4>
+                  <p className={styles.infoText}>
+                    Rua Bahia, 928 — Siqueira Campos, Aracaju – SE<br />
+                    <strong>(79) 99989-6288</strong>
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className={styles.infoTitle}>Unidade Filial</h4>
-                <p className={styles.infoText}>
-                  Rua Bahia, 928 — Siqueira Campos, Aracaju – SE<br />
-                  <strong>(79) 99989-6288</strong>
-                </p>
-              </div>
-            </div>
+            )}
 
             <div className={`${styles.infoItem} ${styles.reveal}`}>
               <div className={styles.iconWrapper}>

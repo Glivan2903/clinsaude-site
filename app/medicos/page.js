@@ -5,6 +5,7 @@ import MedicosDirectory from "../../components/MedicosDirectory";
 import { getProfissionaisUnificados } from "../../lib/profissionais";
 import { getStatusParaSlugs } from "../../lib/profissionaisStatus";
 import { FEATURE_PROFISSIONAIS } from "../../lib/featureFlags";
+import { getUnidadesFooterProps } from "../../lib/unidades";
 
 // O diretório lista todos os profissionais, mas quem está com o link
 // desativado (ver /admin) recebe um indicativo visual e não é levado à
@@ -33,7 +34,7 @@ export default async function Medicos() {
         <MedicosDirectory profissionais={profissionais} statusPorSlug={statusPorSlug} />
       </section>
 
-      <Footer />
+      <Footer {...getUnidadesFooterProps()} />
     </main>
   );
 }

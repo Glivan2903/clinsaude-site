@@ -4,6 +4,7 @@ import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import { getPost } from "../../../lib/blog";
 import { FEATURE_BLOG, FEATURE_AGENDAMENTO } from "../../../lib/featureFlags";
+import { getUnidadesFooterProps } from "../../../lib/unidades";
 import styles from "./page.module.css";
 
 export const dynamic = 'force-dynamic';
@@ -61,7 +62,7 @@ export default async function BlogPostPage({ params }) {
         )}
       </article>
 
-      <Footer />
+      <Footer {...getUnidadesFooterProps()} />
     </main>
   );
 }

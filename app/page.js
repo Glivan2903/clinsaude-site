@@ -5,16 +5,19 @@ import AboutSection from "../components/AboutSection";
 import SpecialtiesSection from "../components/SpecialtiesSection";
 import Footer from "../components/Footer";
 import CTASection from "../components/CTASection";
+import { getUnidadesFooterProps } from "../lib/unidades";
 
 export default function Home() {
+  const unidadesProps = getUnidadesFooterProps();
+
   return (
     <main className={styles.main}>
       <Header />
       <HeroSection />
       <CTASection />
-      <AboutSection />
+      <AboutSection {...unidadesProps} />
       <SpecialtiesSection />
-      <Footer />
+      <Footer {...unidadesProps} />
     </main>
   );
 }
