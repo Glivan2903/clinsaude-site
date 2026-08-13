@@ -11,6 +11,9 @@ export const maxDuration = 60;
 // enquanto o admin está com o modal de conexão aberto; se a instância cair e
 // voltar sozinha depois disso, nada mais reconfigura o webhook na UAZAPI.
 // Idempotente: reconfigurar mesmo já correto não tem efeito colateral.
+// Roda 1x/dia (ver vercel.json) — o plano Hobby da Vercel só permite crons
+// diários; se o projeto estiver num plano que permita mais frequência, dá
+// pra apertar esse intervalo depois.
 export async function GET(request) {
   if (!FEATURE_WHATSAPP) {
     return NextResponse.json({ error: 'Feature Whatsapp desativada (NEXT_PUBLIC_FEATURE_WHATSAPP=false).' }, { status: 404 });
