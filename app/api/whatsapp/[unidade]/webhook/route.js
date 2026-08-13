@@ -12,6 +12,8 @@ import {
   pausarConversa,
   registrarEcoEnvio,
   consumirEcoEnvio,
+  marcarEnvioEmAndamento,
+  consumirEnvioRecente,
   jaProcessado,
   marcarProcessado,
   registrarContato,
@@ -85,7 +87,8 @@ async function processarEvento(unidade, body) {
 
   if (fromMe) {
     const eraEcoDoBot = await consumirEcoEnvio(unidade, messageId);
-    if (!eraEcoDoBot && texto.trim()) {
+    const eraEnvioAutomaticoRecente = !eraEcoDoBot && (await consumirEnvioRecente(unidade, numero));
+    if (!eraEcoDoBot && !eraEnvioAutomaticoRecente && texto.trim()) {
       // Mensagem enviada manualmente pelo dispositivo conectado (direto no
       // app do Whatsapp, fora do painel): um atendente humano assumiu —
       // Sofia fica muda por 60min (lib/whatsappConversations.js). Precisa
@@ -158,6 +161,7 @@ async function processarEvento(unidade, body) {
   });
   await salvarHistorico(unidade, numero, historico);
 
+  await marcarEnvioEmAndamento(unidade, numero);
   const envio = await sendText(unidade, { numero, texto: reply });
   await registrarEcoEnvio(unidade, envio.messageId);
   await registrarContato(unidade, numero, { ultimaMensagem: reply, autor: 'sofia' });
