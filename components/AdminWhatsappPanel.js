@@ -16,6 +16,7 @@ import {
   Bot,
 } from 'lucide-react';
 import { gsap, useGSAP } from '../lib/gsap';
+import ConfirmDialog from './ConfirmDialog';
 import styles from './AdminWhatsappPanel.module.css';
 import { FEATURE_WHATSAPP_INBOX } from '../lib/featureFlags';
 
@@ -67,6 +68,7 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
   const [webhookOkPorUnidade, setWebhookOkPorUnidade] = useState({});
   const [qrExpiradoPorUnidade, setQrExpiradoPorUnidade] = useState({});
   const [unidadeConfigModal, setUnidadeConfigModal] = useState(null);
+  const [confirmDesconectarUnidade, setConfirmDesconectarUnidade] = useState(null);
   const [modoConexao, setModoConexao] = useState('qrcode'); // 'qrcode' | 'paircode'
   const [telefonePareamento, setTelefonePareamento] = useState('');
   const qrTimers = useRef({}); // { [unidadeId]: { intervalId, timeoutId } }
@@ -338,10 +340,17 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
     }
   }
 
+  function pedirDesconexao(unidadeId) {
+    setConfirmDesconectarUnidade(unidadeId);
+  }
+
+  function confirmarDesconexao() {
+    const unidadeId = confirmDesconectarUnidade;
+    setConfirmDesconectarUnidade(null);
+    if (unidadeId) desconectar(unidadeId);
+  }
+
   async function desconectar(unidadeId) {
-    if (!window.confirm('Desconectar este número do WhatsApp? Será preciso escanear o QR code de novo para reconectar.')) {
-      return;
-    }
     pararQrPolling(unidadeId);
     setAcaoEmAndamento((prev) => ({ ...prev, [unidadeId]: 'desconectando' }));
     setErroPorUnidade((prev) => ({ ...prev, [unidadeId]: null }));
@@ -739,7 +748,7 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                   <button
                     type="button"
                     className="btn-secondary"
-                    onClick={() => desconectar(unidadeConfig.id)}
+                    onClick={() => pedirDesconexao(unidadeConfig.id)}
                     disabled={acao === 'desconectando'}
                   >
                     {acao === 'desconectando' ? 'Desconectando...' : 'Desconectar'}
@@ -832,7 +841,7 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
                       <button
                         type="button"
                         className="btn-secondary"
-                        onClick={() => desconectar(unidadeConfig.id)}
+                        onClick={() => pedirDesconexao(unidadeConfig.id)}
                         disabled={acao === 'desconectando'}
                       >
                         {acao === 'desconectando' ? 'Cancelando...' : 'Cancelar'}
@@ -869,6 +878,17 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirmDesconectarUnidade)}
+        title="Desconectar Whatsapp"
+        message="Desconectar este número do Whatsapp? Será preciso escanear o QR code de novo para reconectar."
+        confirmLabel="Desconectar"
+        cancelLabel="Cancelar"
+        danger
+        onConfirm={confirmarDesconexao}
+        onCancel={() => setConfirmDesconectarUnidade(null)}
+      />
     </>
   );
 }

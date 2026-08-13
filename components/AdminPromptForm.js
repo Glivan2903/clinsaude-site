@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { gsap, useGSAP } from '../lib/gsap';
+import ConfirmDialog from './ConfirmDialog';
 import styles from './AdminPromptForm.module.css';
 
 export default function AdminPromptForm({
@@ -20,6 +21,7 @@ export default function AdminPromptForm({
   const [erro, setErro] = useState(null);
   const [atualizadoEm, setAtualizadoEm] = useState(atualizadoEmInicial);
   const [personalizado, setPersonalizado] = useState(personalizadoInicial);
+  const [confirmRestaurar, setConfirmRestaurar] = useState(false);
 
   useGSAP(
     () => {
@@ -59,9 +61,11 @@ export default function AdminPromptForm({
   }
 
   function restaurarPadrao() {
-    if (!window.confirm('Restaurar o prompt padrão da clínica? Isso substitui o texto atual (você pode editar de novo depois).')) {
-      return;
-    }
+    setConfirmRestaurar(true);
+  }
+
+  function confirmarRestaurarPadrao() {
+    setConfirmRestaurar(false);
     salvar(null);
   }
 
@@ -125,6 +129,16 @@ export default function AdminPromptForm({
         </p>
         <pre className={styles.segurancaTexto}>{regrasSeguranca}</pre>
       </details>
+
+      <ConfirmDialog
+        open={confirmRestaurar}
+        title="Restaurar padrão da clínica"
+        message="Restaurar o prompt padrão da clínica? Isso substitui o texto atual (você pode editar de novo depois)."
+        confirmLabel="Restaurar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmarRestaurarPadrao}
+        onCancel={() => setConfirmRestaurar(false)}
+      />
     </div>
   );
 }
