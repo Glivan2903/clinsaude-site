@@ -2,6 +2,7 @@
   "framework": "nextjs",
   "crons": [
     { "path": "/api/cron/blog", "schedule": "0 9 * * *" },
-    { "path": "/api/cron/instagram", "schedule": "30 10 * * *" }
+    { "path": "/api/cron/instagram", "schedule": "30 10 * * *" },
+    { "path": "/api/cron/whatsapp-webhook", "schedule": "0 * * * *" }
   ]
 }

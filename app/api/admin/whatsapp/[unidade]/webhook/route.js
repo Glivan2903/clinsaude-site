@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { UNIDADES_INFO } from '../../../../../../lib/unidadesInfo';
-import { configurarWebhook, getInstanciaUazapi } from '../../../../../../lib/uazapi';
+import { configurarWebhook, getInstanciaUazapi, montarWebhookUrl, resolverOrigemWebhook } from '../../../../../../lib/uazapi';
 
 export async function POST(request, { params }) {
   const { unidade } = await params;
@@ -11,18 +11,14 @@ export async function POST(request, { params }) {
     return NextResponse.json({ success: false, error: 'Unidade sem instância UAZAPI configurada.' }, { status: 400 });
   }
 
-  const secret = process.env.UAZAPI_WEBHOOK_SECRET;
-  if (!secret) {
+  const origem = resolverOrigemWebhook(request.url);
+  const webhookUrl = montarWebhookUrl(origem, unidade);
+  if (!webhookUrl) {
     return NextResponse.json(
       { success: false, error: 'Configure UAZAPI_WEBHOOK_SECRET no ambiente antes de configurar o webhook.' },
       { status: 400 }
     );
   }
-
-  // Mesma origem que serviu esta requisição — funciona tanto no domínio de
-  // produção quanto em previews da Vercel, sem precisar de env extra.
-  const origem = new URL(request.url).origin;
-  const webhookUrl = `${origem}/api/whatsapp/${unidade}/webhook?secret=${encodeURIComponent(secret)}`;
 
   try {
     await configurarWebhook(unidade, webhookUrl);
