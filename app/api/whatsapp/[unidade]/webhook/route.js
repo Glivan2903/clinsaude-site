@@ -85,10 +85,16 @@ async function processarEvento(unidade, body) {
 
   if (fromMe) {
     const eraEcoDoBot = await consumirEcoEnvio(unidade, messageId);
-    if (!eraEcoDoBot) {
-      // Mensagem enviada manualmente pelo dispositivo conectado: um atendente
-      // humano assumiu — Sofia fica muda por 60min (lib/whatsappConversations.js).
+    if (!eraEcoDoBot && texto.trim()) {
+      // Mensagem enviada manualmente pelo dispositivo conectado (direto no
+      // app do Whatsapp, fora do painel): um atendente humano assumiu —
+      // Sofia fica muda por 60min (lib/whatsappConversations.js). Precisa
+      // gravar no histórico completo também (mesmo "role: assistant" do
+      // envio manual do painel), senão ela só aparece no preview da lista de
+      // conversas e some ao abrir o chat.
       await pausarConversa(unidade, numero);
+      const historicoAtual = await getHistorico(unidade, numero);
+      await salvarHistorico(unidade, numero, [...historicoAtual, { role: 'assistant', content: texto }]);
       await registrarContato(unidade, numero, { nome, ultimaMensagem: texto, autor: 'atendente' });
     }
     await marcarProcessado(unidade, messageId);
