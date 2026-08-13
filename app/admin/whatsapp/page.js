@@ -3,6 +3,7 @@ import AdminNav from '@/components/AdminNav';
 import AdminWhatsappPanel from '@/components/AdminWhatsappPanel';
 import { UNIDADES_INFO } from '@/lib/unidadesInfo';
 import { getStatus, getInstanciaUazapi } from '@/lib/uazapi';
+import { getIaAtivaUnidade } from '@/lib/whatsappConversations';
 import { FEATURE_WHATSAPP } from '@/lib/featureFlags';
 import styles from '../page.module.css';
 import wa from './whatsapp.module.css';
@@ -17,15 +18,16 @@ export const metadata = {
 async function getUnidadesComStatus() {
   return Promise.all(
     UNIDADES_INFO.map(async ({ id, nome }) => {
+      const iaAtivaUnidade = await getIaAtivaUnidade(id);
       if (!getInstanciaUazapi(id)) {
-        return { id, nome, configurada: false };
+        return { id, nome, configurada: false, iaAtivaUnidade };
       }
       try {
         const status = await getStatus(id);
-        return { id, nome, configurada: true, ...status };
+        return { id, nome, configurada: true, iaAtivaUnidade, ...status };
       } catch (error) {
         console.error(`Erro ao consultar status inicial da UAZAPI (${id}):`, error);
-        return { id, nome, configurada: true, conectado: false, estado: 'erro' };
+        return { id, nome, configurada: true, iaAtivaUnidade, conectado: false, estado: 'erro' };
       }
     })
   );

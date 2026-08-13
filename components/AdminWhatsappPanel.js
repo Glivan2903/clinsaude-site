@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Webhook,
+  Bot,
 } from 'lucide-react';
 import { gsap, useGSAP } from '../lib/gsap';
 import styles from './AdminWhatsappPanel.module.css';
@@ -378,6 +379,23 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
     }
   }
 
+  async function alternarIaUnidade(unidadeId, ativaAtual) {
+    setAcaoEmAndamento((prev) => ({ ...prev, [unidadeId]: 'alternando_ia' }));
+    try {
+      const res = await fetch(`/api/admin/whatsapp/${unidadeId}/ia`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ativa: !ativaAtual }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        atualizarUnidade(unidadeId, { iaAtivaUnidade: data.ativa });
+      }
+    } finally {
+      setAcaoEmAndamento((prev) => ({ ...prev, [unidadeId]: null }));
+    }
+  }
+
   function abrirConfigModal(unidadeId) {
     setUnidadeConfigModal(unidadeId);
     setModoConexao('qrcode');
@@ -677,6 +695,33 @@ export default function AdminWhatsappPanel({ unidadesIniciais }) {
             </div>
 
             <div className={styles.modalBody}>
+              {unidadeConfig.configurada && (
+                <div className={styles.secaoIa}>
+                  <div className={styles.secaoIaTexto}>
+                    <span className={styles.secaoIaTitulo}>
+                      <Bot size={15} />
+                      IA da Sofia nesta unidade
+                    </span>
+                    <p className={styles.secaoIaDescricao}>
+                      {unidadeConfig.iaAtivaUnidade
+                        ? 'Ativada — a Sofia responde automaticamente às mensagens desta unidade.'
+                        : 'Desligada — as mensagens continuam chegando aqui, mas ninguém responde sozinho. Atenda manualmente pelo chat.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className={`${styles.switchIa} ${unidadeConfig.iaAtivaUnidade ? styles.switchIaAtiva : ''}`}
+                    role="switch"
+                    aria-checked={unidadeConfig.iaAtivaUnidade}
+                    aria-label={unidadeConfig.iaAtivaUnidade ? 'Desligar IA desta unidade' : 'Ligar IA desta unidade'}
+                    onClick={() => alternarIaUnidade(unidadeConfig.id, unidadeConfig.iaAtivaUnidade)}
+                    disabled={acao === 'alternando_ia'}
+                  >
+                    <span className={styles.switchKnob} />
+                  </button>
+                </div>
+              )}
+
               {!unidadeConfig.configurada ? (
                 <div className={styles.estadoVazio}>
                   <AlertTriangle size={30} strokeWidth={1.5} />

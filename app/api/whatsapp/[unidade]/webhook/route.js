@@ -8,6 +8,7 @@ import {
   getHistorico,
   salvarHistorico,
   estaPausada,
+  getIaAtivaUnidade,
   pausarConversa,
   registrarEcoEnvio,
   consumirEcoEnvio,
@@ -134,6 +135,7 @@ async function processarEvento(unidade, body) {
   await salvarHistorico(unidade, numero, historicoComPergunta);
 
   if (await estaPausada(unidade, numero)) return; // atendente humano está conversando
+  if (!(await getIaAtivaUnidade(unidade))) return; // IA desligada pra toda a unidade nas configurações
 
   const primeiraMensagem = historicoAnterior.length === 0;
   // Conversa nova já é coberta por primeiraMensagem acima — aqui só cobre

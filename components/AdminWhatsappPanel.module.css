@@ -818,6 +818,74 @@
   min-width: 200px;
 }
 
+.secaoIa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.secaoIaTexto {
+  min-width: 200px;
+  flex: 1;
+}
+
+.secaoIaTitulo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  color: var(--green-900);
+  font-size: 0.92rem;
+}
+
+.secaoIaDescricao {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-top: 0.3rem;
+  line-height: 1.5;
+}
+
+.switchIa {
+  flex-shrink: 0;
+  width: 44px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--line-strong);
+  position: relative;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.switchIa:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.switchIaAtiva {
+  background: var(--green-700);
+}
+
+.switchKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform 150ms ease;
+}
+
+.switchIaAtiva .switchKnob {
+  transform: translateX(20px);
+}
+
 .secaoWebhook {
   display: flex;
   align-items: center;
