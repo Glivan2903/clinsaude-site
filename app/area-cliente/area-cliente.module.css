@@ -537,6 +537,19 @@
   border: 1px solid var(--line);
 }
 
+.dialogHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dialogHeader h3 {
+  font-size: 1.1rem;
+  color: var(--primary-color);
+}
+
 .dialogBody {
   padding: 1.5rem;
 }
